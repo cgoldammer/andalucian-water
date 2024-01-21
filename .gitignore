@@ -1,3 +1,4 @@
-data/
+data/output/
+data/input/
 .DS_Store
 __pycache__/
