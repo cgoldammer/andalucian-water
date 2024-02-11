@@ -148,6 +148,10 @@ def filter_monthly(filename):
     filename_without_extension = filename.split('.')[0]
     return filename_without_extension.endswith('01')
 
+def filter_function(filename, f):
+    filename_without_extension = filename.split('.')[0]
+    return f(filename_without_extension)
+
 def correct_issues(df):
     
     val_bad = -9999.0
@@ -155,4 +159,9 @@ def correct_issues(df):
     # Find all numeric columns in the df
     cols_numeric = df.select_dtypes(include='number').columns
     df[cols_numeric] = df[cols_numeric].replace(val_bad, np.nan)
+    
+    # TODO: There are many cases where the historical rainfall is not reset
+    # at the end of the water-year, but instead at the end of the calendar year.
+    # In that case, it's probably best to replace the unknown months with missing values.
+    
     return(df)
