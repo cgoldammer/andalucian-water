@@ -3,3 +3,4 @@ data/input/
 data/datasets/all*
 .DS_Store
 __pycache__/
+images/

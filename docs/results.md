@@ -2,7 +2,7 @@
 
 Es muy claro que por todo Andalucía, los embalsen se han vaciado por los proximos años. Se puede ver en el imagen abajo: En 2013, la mayoría de los embalses estaban a mas de 70%, y ahora están por los 20%. Especialmente despues de 2018, se ha reducido por alrededor de 8% puntos porcentuals cada año
 
-[storage_over_time.png]
+![Porcentaje](https://publicappsanywhere.s3.eu-west-3.amazonaws.com/images/storage_over_time.png)
 
 Qué se pasó en 2018? Habia gran cantidad de lluvia [todo: add source] por la primavera.
 
@@ -12,7 +12,8 @@ Sí! Pero con muchos advertencias!
 
 Empezamos con la lluvia. Se mide por cm, pero parece lo mas sencillo que comparamos la lluvia de ahora con la lluvia del pasado. No podia obtener la definicion exacto de los datos, pero parece que nos han dado el la lluvia mediana de 1971-2000.
 
-[rain_over_time.png]
+![Lluvía](https://publicappsanywhere.s3.eu-west-3.amazonaws.com/images/rain_over_time.png)
+
 
 Con excepciones, sí es verdad que, despues de 2018, la lluvia es por bajo de la expectiva historica. En 2023, tuvimos 67% de la lluvia historica, y 74% en promedio durante 2019-2023.
 
@@ -22,7 +23,7 @@ Con los datos tambien se puede hacer una pequeña simulacion: Si lloviera normal
 2. En naranja, la simulacion de la percentaje. Es *mas o menos* semejante al actual, y dice (mas o menos) que la simulacion puede describir lo que se está pasando.
 3. En rojo: La percentaje, si lloviera normalmente (a los 100% de lluvias historicas).
 
-[simulation.png]
+![Simulacíon](https://publicappsanywhere.s3.eu-west-3.amazonaws.com/images/simulation.png)
 
 Y sí, vemos que, con lluvia normales historicas, no hubiese bajado el porcentaje.
 
