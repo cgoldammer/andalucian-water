@@ -4,7 +4,7 @@
 
 If you just want to use the data, it's probably easiest to work with pre-cleaned CSV datasets,
 probably [a cleaned version of the raw data](data/datasets/monthly_corrected.csv). And then look
-at the [analysis.ipynb notebook](analysis.ipynb) to see examples how this data can get used.
+at the [analysis.ipynb notebook](./docs/analysis.ipynb) to see examples how this data can get used.
 
 At a high level, this data contains the fill status for the water reservoirs in Andalucia, Spain.
 Andalucia is (as of 2024) going through an extended drought, with many reservoirs running low,

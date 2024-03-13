@@ -39,3 +39,4 @@ virtualenv==20.25.0
 virtualenv-clone==0.5.7
 virtualenvwrapper==6.0.0
 yarl==1.9.2
+streamlit==1.31.0
