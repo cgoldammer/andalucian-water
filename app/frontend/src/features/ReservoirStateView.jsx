@@ -6,6 +6,44 @@ import { ThemeProvider, Box, Container, Button, CardMedia, FormControl, Input, I
 import { DataGrid } from "@mui/x-data-grid";
 import { LineChart } from '@mui/x-charts/LineChart'
 
+export const getChartData = (data) => {
+    console.log(data)
+    const ids = [...new Set(data.map((row) => row.reservoirUuid))];
+    const datesUnique = [...new Set(data.map((row) => row.date))].sort();
+    console.log("ids: ");
+    console.log(ids);
+    console.log("datesUnique: ", datesUnique);
+
+    const getValuesForUuid = (uuid) => {
+        const rows = data.filter((row) => row.reservoirUuid == uuid);
+        var values = [];
+        for (let i = 0; i < datesUnique.length; i++) {
+            const date = datesUnique[i];
+            const row = rows.find((row) => row.date == date);
+            if (row == undefined) {
+                values.push(null);
+            } else {
+                values.push(row.volume / row.capacity * 100);
+            } 
+        }
+        // console.log("rows: ", values);
+
+        return {
+            type: 'line',
+            data: values,
+            id: uuid,
+            label: rows[0].reservoirName
+        }
+    }
+
+    const series = ids.map((uuid) => getValuesForUuid(uuid));
+
+    return {
+        series: series,
+        xvalues: datesUnique
+    }
+}
+
 export const ReservoirStateView = () => {
     const { data, error, isLoading } = useGetReservoirStatesQuery(true);
     if (isLoading || data == undefined) {
@@ -19,6 +57,7 @@ export const ReservoirStateView = () => {
             id: row.uuid,
             date: row.date,
             volume: row.volume,
+            capacity: row.reservoir.capacity,
             reservoirName: row.reservoir.name,
             reservoirUuid: row.reservoir.uuid
         };
@@ -30,21 +69,13 @@ export const ReservoirStateView = () => {
         { field: "id", headerName: "ID", width: 150 },
         { field: "date", headerName: "Date", width: 150 },
         { field: "volume", headerName: "Current Volume", width: 200 },
+        { field: "capacity", headerName: "Capacity", width: 200},
         { field: "reservoirName", headerName: "Reservoir", width: 200 },
         { field: "reservoirUuid", headerName: "Reservoir UUID", width: 200 }
     ];
 
-    // Add a chart using x-charts for the first reservoir
-    const firstReservoirUuid = dataCleaned[0].reservoirUuid;
-    const firstReservoirData = dataCleaned.filter((row) => row.reservoirUuid == firstReservoirUuid);
-    console.log("ReservoirStateView firstReservoirData: ", firstReservoirData)
-    const series = [
-        {
-            type: 'line',
-            data: firstReservoirData.map((row) => row.volume)
-        }
-    ];
-    const xvalues = firstReservoirData.map((row) => row.date);
+    const {series, xvalues} = getChartData(dataCleaned);
+    
 
 
     return (
@@ -58,7 +89,7 @@ export const ReservoirStateView = () => {
                       valueFormatter: (value) => value.toString(),
 }]}
             
-                series={series} width={500} height={300}/>
+                series={series} width={800} height={600}/>
             <DataGrid rows={dataCleaned} columns={columns}/>
             
         </div>
