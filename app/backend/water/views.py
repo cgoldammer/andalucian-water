@@ -1,6 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
-from .models import Inquiry,  Reservoir, RainFall, ReservoirState
+from .models import Inquiry,  Reservoir, RainFall, ReservoirState, ReservoirSerializer, ReservoirStateSerializer
 from django.shortcuts import render
 from . import texts
 from rest_framework import status
@@ -108,8 +108,11 @@ def get_user(request):
     return Response({'logged_in': True, "username": request.user.username})
 
 @api_view(['GET'])
+# Allow full access to public users
+@authentication_classes([])
+@permission_classes([])
 def get_reservoir_states(request):
-    states = ReservoirState.objects.all()
+    states = ReservoirState.objects.order_by('reservoir__uuid', 'date')
     serializer = ReservoirStateSerializer(states, many=True)
     return Response(serializer.data)
     

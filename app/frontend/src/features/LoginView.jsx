@@ -114,8 +114,6 @@ export function LoginView(props) {
           onClick={() =>
             registerAction({ username, password, isLogin }).then((data) => {
               console.log("Invalidating / " + username + ": " + password);
-              console.log("Data");
-              console.log(data);
               navigate("/");
               // refetchUser();
             })

@@ -28,25 +28,38 @@ class Inquiry(UuidModel):
  
 class Reservoir(UuidModel):
     name = models.CharField(max_length=100)
-    location = ArrayField(models.FloatField())
     capacity = models.FloatField()
+    
+    constraints = [
+            models.UniqueConstraint(
+                fields=["name"], name="unique_reservoir"
+            )
+        ]
    
 class RainFall(UuidModel):
     date = models.DateTimeField()
     amount = models.FloatField()
-    reservoir = models.ForeignKey(Reservoir, on_delete=models.CASCADE, related_name='rainfalls') 
+    reservoir = models.ForeignKey(Reservoir, on_delete=models.CASCADE, related_name='reservoir_rainfall') 
  
 class ReservoirState(UuidModel):
-    date = models.DateTimeField()
-    current_volume = models.FloatField()
-    reservoir = models.ForeignKey(Reservoir, on_delete=models.CASCADE, related_name='states')
+    date = models.DateField()
+    volume = models.FloatField()
+    reservoir = models.ForeignKey(Reservoir, on_delete=models.CASCADE, related_name='reservoir_reservoirstate')
+    
+    constraints = [
+            models.UniqueConstraint(
+                fields=["date", "reservoir"], name="unique_reservoir_state"
+            )
+        ]
 
 class ReservoirSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservoir
-        fields = ['name', 'location', 'capacity']
+        fields = ['uuid', 'name', 'capacity']
         
 class ReservoirStateSerializer(serializers.ModelSerializer):
+    reservoir = ReservoirSerializer()
+
     class Meta:
         model = ReservoirState
-        fields = ['date', 'current_volume', 'reservoir']
+        fields = ['uuid', 'date', 'volume', 'reservoir']

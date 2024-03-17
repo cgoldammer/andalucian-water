@@ -57,7 +57,7 @@ const uponRegister = (result) => {
   // }
 }
 
-store.dispatch(apiSlice.endpoints.registerUser.initiate(registerData)).then(uponRegister)
+//store.dispatch(apiSlice.endpoints.registerUser.initiate(registerData)).then(uponRegister)
 
 const root = createRoot(document.getElementById("root"));
 

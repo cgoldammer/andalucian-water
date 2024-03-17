@@ -55,17 +55,35 @@ export const db = factory({
   },
   reservoir: {
     uuid: primaryKey(String),
+    name: String,
     
   },
   reservoirState: {
     uuid: primaryKey(String),
     date: Date,
-    currentVolumne: Number,
+    volume: Number,
     reservoir: oneOf('reservoir'),
 
   },
- 
 });
+
+const createReservoir = () => {
+  return {
+    uuid: faker.datatype.uuid(),
+    name: faker.address.city(),
+  };
+}
+
+const createReservoirState = () => {
+  const date = faker.date.recent();
+  const volume = faker.datatype.number();
+  return {
+    uuid: faker.datatype.uuid(),
+    date,
+    volume,
+  };
+
+}
 
 const noiseSize = 0.03;
 const getRandomLocation = () => {
@@ -91,13 +109,28 @@ const serializeLocation = (location) => {
   };
 };
 
-
+const dateStart = new Date(2021, 1, 1);
+const numDates = 1;
+const numReservoirs = 4;
 
 const addMockData = () => {
   for (let i = 0; i < numLocations; i++) {
-
+    db.location.create(createLocation());
   }
 
+  for (let i=0; i < numReservoirs; i++) {
+    const reservoir = db.reservoir.create(createReservoir());
+
+    /* Loop over all dates between dateStart and dateEnd */
+    for (let i=0; i < numDates; i++) {
+      const date = new Date(dateStart);
+      date.setDate(date.getDate() + i);
+      const reservoirState = createReservoirState();
+      reservoirState.date = date;
+      reservoirState.reservoir = reservoir;
+      db.reservoirState.create(reservoirState);
+    }
+  }
 
   db.user.create({ uuid: faker.datatype.uuid(), name: "TestUser" });
 }
@@ -118,6 +151,26 @@ export const handlers = [
     const user = db.user.getAll()[0];
     return HttpResponse.json(user, { status: 201 })
   }),
+  http.get("/fakeApi/get_reservoir_states", (req, res, ctx) => {
+    const matchResponseSeconds = store.getState().settings.matchResponseSeconds;
+    console.log("Responding in " + matchResponseSeconds + " seconds")
+
+    const reservoirStates = db.reservoirState.getAll().map(state => {
+      /* Retrieve the reservoir from the DB */
+      console.log(state.reservoir.uuid)
+      const reservoir = db.reservoir.findFirst({
+        where:{
+          uuid: {
+            equals: state.reservoir.uuid,
+          },
+        } 
+      },);
+      return { ...state, reservoir};
+    });
+
+    console.log("Reservoir states: ", reservoirStates)
+    return HttpResponse.json(reservoirStates, { status: 201 }, matchResponseSeconds * 1000)
+  })
 ];
 
 export const worker = setupWorker(...handlers);

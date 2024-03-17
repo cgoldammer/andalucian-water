@@ -30,7 +30,7 @@ import { useGetLoginTestQuery } from "./features/api/apiSlice";
 import { UserView, LoginView} from "./features/LoginView";
 
 import { setToken } from "./reducers/userReducer";
-
+import { ReservoirStateView } from "./features/ReservoirStateView";
 
 const EmptyView = () => {
     return (<div />)
@@ -39,8 +39,10 @@ const EmptyView = () => {
 const sections = (settings) => {
 const views = {
     admin: settings.hasAdmin ? AdminView : EmptyView,
+    table: ReservoirStateView,
     intro: IntroView,
     footer: FooterView,
+
     // map: MapView
 }
 
@@ -58,7 +60,6 @@ const sectionsDiv = (settings) => {
   
     const sectionView = (section) => {
       const SectionComponent = sectionViews[section];
-      console.log("Section: ", section, "Component: ", SectionComponent)
       return (
       <Grid key={section} xs={12}>
         <div id={"section" + section}>
@@ -115,7 +116,7 @@ export function App() {
               <Grid container justifyContent="center" alignItems="center" xs={12}>
                 <Routes>
                   <Route path="/" element={sectionsDivFull} />
-                  {/* <Route path="/explore" element={<MapView/>} /> */}
+                  <Route path="/explore" element={<MapView/>} />
                   <Route path="/explore/:token" element={<MagicLogin/>} />
                   <Route path="/profile" element={<UserView />} />
                   <Route path="/register" element={<LoginView  />} />

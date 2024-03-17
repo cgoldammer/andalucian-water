@@ -64,7 +64,7 @@ export const apiSlice = createApi({
     getReservoirStates: builder.query({
         query: () => {
             return {
-            url: "/reservoir_states",
+            url: "/get_reservoir_states",
             method: "GET",
             };
         },
