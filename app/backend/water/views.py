@@ -112,7 +112,17 @@ def get_user(request):
 @authentication_classes([])
 @permission_classes([])
 def get_reservoir_states(request):
-    states = ReservoirState.objects.order_by('reservoir__uuid', 'date')
+    
+    num_res = 50
+    is_first_of_month = request.GET.get('is_first_of_month', True)
+    
+    if is_first_of_month:
+        states = ReservoirState.objects.filter(date__day=1).order_by('reservoir__uuid', 'date')
+    else:
+        states = ReservoirState.objects.order_by('reservoir__uuid', 'date')
+        
+    # Restrict to everything after 2020
+    states = states.filter(date__year__gte=2020)[0:num_res]
     serializer = ReservoirStateSerializer(states, many=True)
     return Response(serializer.data)
     

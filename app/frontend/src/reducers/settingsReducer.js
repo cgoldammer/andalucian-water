@@ -6,7 +6,7 @@ const viewNames = [
 ]
 
 const viewNamesDev = [
-  'intro', 'table', 
+  'table', 'intro', 
    'footer']
 
 const initialState = () => {

@@ -42,8 +42,6 @@ const views = {
     table: ReservoirStateView,
     intro: IntroView,
     footer: FooterView,
-
-    // map: MapView
 }
 
 /* Only keep the views that are enabled in settings. */

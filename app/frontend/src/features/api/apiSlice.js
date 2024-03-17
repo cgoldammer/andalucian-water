@@ -62,10 +62,13 @@ export const apiSlice = createApi({
       providesTags: ["User"],
     }),
     getReservoirStates: builder.query({
-        query: () => {
+        query: (is_first_of_month) => {
             return {
-            url: "/get_reservoir_states",
-            method: "GET",
+                url: "/get_reservoir_states",
+                method: "GET",
+                params: {
+                    is_first_of_month: is_first_of_month
+                }
             };
         },
         providesTags: ["ReservoirState"],
