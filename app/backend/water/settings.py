@@ -37,12 +37,17 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'WARNING',
+            'level': 'INFO',
             'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
         },
+        'file_sql': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'log_sql.txt'),
+        },
         'file': {
-            'level': 'DEBUG',
+            'level': 'WARNING',
             'class': 'logging.FileHandler',
             'filename': os.path.join(BASE_DIR, 'logs', 'log.txt'),
         },
@@ -50,8 +55,12 @@ LOGGING = {
     'loggers': {
         'django.db.backends': {
             'level': 'DEBUG',
-            'handlers': ['file'],
-        }
+            'handlers': ['file_sql'],
+        },
+        'water.views': {  # This is the root logger configuration
+        'handlers': ['console', 'file'],
+        'level': 'INFO',
+    },
     }
 }
 
