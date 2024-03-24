@@ -128,6 +128,9 @@ def get_user(request):
     return Response({"logged_in": True, "username": request.user.username})
 
 
+num_obs_default = 500
+
+
 @api_view(["GET"])
 # Allow full access to public users
 @authentication_classes([])
@@ -152,7 +155,7 @@ class TimePeriod(Enum):
 @permission_classes([])
 def get_reservoir_states(request):
 
-    num_obs = request.GET.get("num_obs", 100)
+    num_obs = request.GET.get("num_obs", num_obs_default)
     start_date = request.GET.get("start_date", None)
     end_date = request.GET.get("end_date", None)
     is_first_of_month = request.GET.get("is_first_of_month", "false") != "false"
@@ -181,28 +184,69 @@ def get_reservoir_states(request):
     return Response(serializer.data)
 
 
+@api_view(["GET"])
+# Allow full access to public users
+@authentication_classes([])
+@permission_classes([])
 def get_rainfall(request):
-    num_obs = request.GET.get("num_obs", 10)
+    num_obs = request.GET.get("num_obs", num_obs_default)
     start_date = request.GET.get("start_date", "2023-01-01")
     end_date = request.GET.get("end_date", "2023-02-01")
-    is_first_of_month = request.GET.get("is_first_of_month", False)
-    reservoir_uuids = request.GET.get("reservoirs", None)
+    is_first_of_month = request.GET.get("is_first_of_month", "false") != "false"
+    reservoir_uuids = request.GET.get("reservoir_uuids", None)
 
     # Return an error if is_first_of_month is true
     if is_first_of_month:
-        return Response({"error": "is_first_of_month is not supported for rainfall"})
+        return Response(
+            {"error": "is_first_of_month is not supported"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if not start_date or not end_date:
+        # Create a status for malformed input
+        return Response(
+            {"error": "start_date and end_date are required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    states = data.get_rainfall_data(num_obs, start_date, end_date, reservoir_uuids)
+    serializer = RainFallSerializer(states, many=True)
+    return Response(serializer.data)
 
-    states = RainFall.objects.all()
-    if reservoir_uuids:
-        reservoir_list = reservoir_uuids.split(",")
-        states = states.filter(reservoir__uuid__in=reservoir_list)
 
-    if start_date and end_date:
-        states = states.filter(date__gte=start_date, date__lte=end_date).order_by(
-            "reservoir__uuid", "date"
+@api_view(["GET"])
+# Allow full access to public users
+@authentication_classes([])
+@permission_classes([])
+def get_daily_data(request):
+    print("RUNN")
+    num_obs = int(request.GET.get("num_obs", num_obs_default))
+    start_date = request.GET.get("start_date", "2023-01-01")
+    end_date = request.GET.get("end_date", "2023-02-01")
+    is_first_of_month = request.GET.get("is_first_of_month", "false") != "false"
+    reservoir_uuids = request.GET.get("reservoir_uuids", None)
+
+    log.info("reservoir_uuids: " + str(reservoir_uuids))
+
+    # Return an error if is_first_of_month is true
+    if is_first_of_month:
+        return Response(
+            {"error": "is_first_of_month is not supported"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if not start_date or not end_date:
+        # Create a status for malformed input
+        return Response(
+            {"error": "start_date and end_date are required"},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
-    states = states[0:num_obs]
+    if not reservoir_uuids:
+        return Response(
+            {"error": "reservoir_uuids is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-    serializer = RainFallSerializer(states, many=True)
+    states = data.get_daily_data(
+        num_obs, start_date, end_date, is_first_of_month, reservoir_uuids
+    )
+    serializer = data.DailyDataSerializer(states, many=True)
     return Response(serializer.data)

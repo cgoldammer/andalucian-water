@@ -16,5 +16,7 @@ urlpatterns = [
         views.get_reservoir_states,
         name="get_reservoir_states",
     ),
+    path("api/get_rainfall/", views.get_rainfall, name="get_rainfall"),
     path("api/get_reservoirs", views.get_reservoirs, name="get_reservoirs"),
+    path("api/get_daily_data/", views.get_daily_data, name="get_daily_data"),
 ]

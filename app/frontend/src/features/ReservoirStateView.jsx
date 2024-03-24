@@ -5,6 +5,7 @@ import { FormControl, Input, InputLabel } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { LineChart } from "@mui/x-charts/LineChart";
 import { Select, MenuItem } from "@mui/material";
+import { getChartData, getTableData } from "../helpers/data";
 
 export const ReservoirsView = () => {
   const { data, isLoading } = useGetReservoirsQuery();
@@ -34,8 +35,8 @@ export const ReservoirsView = () => {
 };
 
 export const ReservoirStateUIView = () => {
-  const [startDate, setStartDate] = React.useState("2012-01-01");
-  const [endDate, setEndDate] = React.useState("2013-03-31");
+  const [startDate, setStartDate] = React.useState("2023-01-01");
+  const [endDate, setEndDate] = React.useState("2023-03-31");
   const { data, isLoading } = useGetReservoirsQuery();
   const [reservoir_uuids, setReservoirUuids] = React.useState([]);
 

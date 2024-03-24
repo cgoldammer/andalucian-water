@@ -2,10 +2,6 @@
 when running in webpack-dev-server and through jest. 
 Just importing twice, and using the one version that works */
 
-import { createTheme } from "@mui/material";
-import { responsiveFontSizes } from "@mui/material/styles";
-import { Box, Button } from "@mui/material";
-
 export const runMode = process.env.RUNMODE;
 export const RUNMODE_DEV = "devLocal";
 export const RUNMODE_MOCK = "devMock";

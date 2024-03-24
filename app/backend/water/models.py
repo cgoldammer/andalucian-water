@@ -44,12 +44,6 @@ class RainFall(UuidModel):
     )
 
 
-class RainFallSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RainFall
-        fields = ["uuid", "date", "amount", "reservoir"]
-
-
 class ReservoirState(UuidModel):
     date = models.DateField()
     volume = models.FloatField()
@@ -97,3 +91,12 @@ class ReservoirSerializer2(serializers.ModelSerializer):
     class Meta:
         model = Reservoir
         fields = ["uuid", "name", "capacity", "num_states"]
+
+
+class RainFallSerializer(serializers.ModelSerializer):
+
+    reservoir = ReservoirSerializer()
+
+    class Meta:
+        model = RainFall
+        fields = ["uuid", "date", "amount", "reservoir"]

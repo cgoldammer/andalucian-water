@@ -1,5 +1,8 @@
 import { ImageOverlay } from "react-leaflet/ImageOverlay";
 import { styled } from "@mui/system";
+import { createTheme } from "@mui/material";
+import { responsiveFontSizes } from "@mui/material/styles";
+import { Box, Button } from "@mui/material";
 
 export const NewIm = styled(ImageOverlay)({
   opacity: 0.1,

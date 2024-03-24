@@ -34,7 +34,7 @@ export const getChartData = (data) => {
       values.push(value);
     }
     return {
-      yAxisKey: "fill",
+      yAxisKey: lineId == "State" ? "fill" : "rain",
       type: "line",
       data: values,
       id: lineId + uuid,

@@ -1,4 +1,4 @@
-from water.models import Reservoir, ReservoirState
+from water.models import Reservoir, ReservoirState, RainFall
 import random
 import pandas as pd
 
@@ -22,3 +22,8 @@ def fill_simple(
                 date=date, volume=random.uniform(0, 100), reservoir=reservoir
             )
             state.save()
+
+            rainfall = RainFall(
+                date=date, amount=random.uniform(0, 100), reservoir=reservoir
+            )
+            rainfall.save()

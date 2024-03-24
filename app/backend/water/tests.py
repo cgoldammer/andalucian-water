@@ -102,7 +102,64 @@ class ReservoirTestCase(AppTest):
         state.set_mock_mode(True)
 
     def testGetReservoirs(self):
-        reservoirs = data.get_reservoirs()
+        reservoirs = data.get_reservoir_data()
 
         reservoirs_raw = Reservoir.objects.all()
         self.assertTrue(len(reservoirs) == len(reservoirs_raw))
+
+    def testGetReservoirStates(self):
+        reservoirs = Reservoir.objects.all()
+        reservoir = reservoirs[0]
+
+        start_date = "1970-01-01"
+        end_date = "2999-01-01"
+
+        num_obs = 10
+        states = data.get_reservoir_states_data(
+            num_obs, start_date, end_date, False, str(reservoir.uuid)
+        )
+
+        assert len(states) > 0
+
+    def testGetDailyData(self):
+        reservoirs = Reservoir.objects.all()
+        reservoir = reservoirs[0]
+
+        start_date = "1970-01-01"
+        end_date = "2999-01-01"
+
+        num_obs = 10
+        states = data.get_daily_data(
+            num_obs, start_date, end_date, False, str(reservoir.uuid)
+        )
+
+        # Ensure that both reservoirState and rainfall
+        # are not null at least once in the states
+
+        not_null_state = sum([st["reservoir_state"] is not None for st in states])
+        not_null_rainfall = sum([st["rainfall"] is not None for st in states])
+        assert not_null_state > 0
+        assert not_null_rainfall > 0
+        assert len(states) > 0
+
+        first_res = states[0]
+        assert first_res["reservoir"] is not None
+        assert first_res["reservoir_state"] is not None
+        assert first_res["rainfall"] is not None
+
+    def testGetDailyView(self):
+        reservoirs = Reservoir.objects.all()
+        reservoir = reservoirs[0]
+
+        start_date = "1970-01-01"
+        end_date = "2999-01-01"
+
+        num_obs = 10
+        url = f"/api/get_daily_data/?num_obs={num_obs}&start_date={start_date}&end_date={end_date}&reservoir_uuids={reservoir.uuid}"
+
+        response = self.client.get(url)
+        # Assert that response is ok
+        self.assertEqual(response.status_code, 200)
+        json_parsed = response.json()
+
+        assert len(json_parsed) > 0
