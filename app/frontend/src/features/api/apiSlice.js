@@ -47,7 +47,7 @@ export const apiSlice = createApi({
       query: (params) => {
         return {
           url: `/test/${params.text}`,
-          method: "GET"
+          method: "GET",
         };
       },
       providesTags: ["User"],
@@ -56,31 +56,87 @@ export const apiSlice = createApi({
       query: (params) => {
         return {
           url: "/login_test",
-          method: "GET"
+          method: "GET",
         };
       },
       providesTags: ["User"],
     }),
+    getReservoirs: builder.query({
+      query: () => {
+        return {
+          url: "/get_reservoirs",
+          method: "GET",
+        };
+      },
+      providesTags: ["Reservoir"],
+    }),
+    getRainfall: builder.query({
+      query: (data) => {
+        const { is_first_of_month, reservoir_uuids, start_date, end_date } =
+          data;
+        console.log(
+          "Getting data for rainfall: ",
+          reservoir_uuids,
+          " from ",
+          start_date,
+          " to ",
+          end_date
+        );
+        return {
+          url: `/get_rainfall?is_first_of_month=${is_first_of_month}&reservoir_uuids=${reservoir_uuids}&start_date=${start_date}&end_date=${end_date}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["ReservoirState"],
+    }),
     getReservoirStates: builder.query({
-        query: (is_first_of_month) => {
-            return {
-                url: "/get_reservoir_states",
-                method: "GET",
-                params: {
-                    is_first_of_month: is_first_of_month
-                }
-            };
-        },
-        providesTags: ["ReservoirState"],
-        }),
-    })
+      query: (data) => {
+        const { is_first_of_month, reservoir_uuids, start_date, end_date } =
+          data;
+        console.log(
+          "Getting data for reservoirs: ",
+          reservoir_uuids,
+          " from ",
+          start_date,
+          " to ",
+          end_date
+        );
+        return {
+          url: `/get_reservoir_states?is_first_of_month=${is_first_of_month}&reservoir_uuids=${reservoir_uuids}&start_date=${start_date}&end_date=${end_date}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["ReservoirState"],
+    }),
+    getDailyData: builder.query({
+      query: (data) => {
+        const { reservoir_uuids, start_date, end_date } = data;
+        console.log(
+          "Getting data for reservoirs: ",
+          reservoir_uuids,
+          " from ",
+          start_date,
+          " to ",
+          end_date
+        );
+        return {
+          url: `/get_daily_data?reservoir_uuids=${reservoir_uuids}&start_date=${start_date}&end_date=${end_date}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["ReservoirState"],
+    }),
+  }),
 });
 
 export const {
-    useRegisterUserMutation,
-    useLogoutMutation,
-    useGetTestQuery,
-    useGetLoginTestQuery,
-    useGetReservoirStatesQuery,
-    util
+  useRegisterUserMutation,
+  useLogoutMutation,
+  useGetTestQuery,
+  useGetLoginTestQuery,
+  useGetReservoirsQuery,
+  useGetRainfallQuery,
+  useGetReservoirStatesQuery,
+  useGetDailyDataQuery,
+  util,
 } = apiSlice;

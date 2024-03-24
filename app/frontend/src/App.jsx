@@ -30,7 +30,7 @@ import { useGetLoginTestQuery } from "./features/api/apiSlice";
 import { UserView, LoginView} from "./features/LoginView";
 
 import { setToken } from "./reducers/userReducer";
-import { ReservoirStateView } from "./features/ReservoirStateView";
+import { ReservoirStateUIView } from "./features/ReservoirStateView";
 
 const EmptyView = () => {
     return (<div />)
@@ -39,7 +39,7 @@ const EmptyView = () => {
 const sections = (settings) => {
 const views = {
     admin: settings.hasAdmin ? AdminView : EmptyView,
-    table: ReservoirStateView,
+    table: ReservoirStateUIView,
     intro: IntroView,
     footer: FooterView,
 }

@@ -1,107 +1,166 @@
 import React from "react";
 
-import Grid from "@mui/material/Unstable_Grid2";
-import { useGetReservoirStatesQuery } from "./api/apiSlice";
-import { ThemeProvider, Box, Container, Button, CardMedia, FormControl, Input, InputLabel, FormHelperText, TextField } from "@mui/material"
+import { useGetDailyDataQuery, useGetReservoirsQuery } from "./api/apiSlice";
+import { FormControl, Input, InputLabel } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { LineChart } from '@mui/x-charts/LineChart'
+import { LineChart } from "@mui/x-charts/LineChart";
+import { Select, MenuItem } from "@mui/material";
 
-export const getChartData = (data) => {
-    console.log(data)
-    const ids = [...new Set(data.map((row) => row.reservoirUuid))];
-    const datesUnique = [...new Set(data.map((row) => row.date))].sort();
-    console.log("ids: ");
-    console.log(ids);
-    console.log("datesUnique: ", datesUnique);
+export const ReservoirsView = () => {
+  const { data, isLoading } = useGetReservoirsQuery();
+  if (isLoading || data == undefined) {
+    return <div>Loading...</div>;
+  }
 
-    const getValuesForUuid = (uuid) => {
-        const rows = data.filter((row) => row.reservoirUuid == uuid);
-        var values = [];
-        for (let i = 0; i < datesUnique.length; i++) {
-            const date = datesUnique[i];
-            const row = rows.find((row) => row.date == date);
-            if (row == undefined) {
-                values.push(null);
-            } else {
-                values.push(row.volume / row.capacity * 100);
-            } 
-        }
-        // console.log("rows: ", values);
-
-        return {
-            type: 'line',
-            data: values,
-            id: uuid,
-            label: rows[0].reservoirName
-        }
-    }
-
-    const series = ids.map((uuid) => getValuesForUuid(uuid));
-
+  const dataCleaned = data.map((row) => {
     return {
-        series: series,
-        xvalues: datesUnique
-    }
-}
+      id: row.uuid,
+      name: row.name,
+      capacity: row.capacity,
+      num_states: row.num_states,
+    };
+  });
 
-export const ReservoirStateView = () => {
-    const { data, error, isLoading } = useGetReservoirStatesQuery(true);
-    if (isLoading || data == undefined) {
-        return <div>Loading...</div>;
-    }
-    /* Console log the data */
-    console.log("ReservoirStateView data: ", data);
+  console.log("ReservoirsView dataCleaned: ", dataCleaned);
 
-    const dataCleaned = data.map((row, index) => {
-        return {
-            id: row.uuid,
-            date: row.date,
-            volume: row.volume,
-            capacity: row.reservoir.capacity,
-            reservoirName: row.reservoir.name,
-            reservoirUuid: row.reservoir.uuid
-        };
-    });
+  const columns = [
+    { field: "id", headerName: "ID", width: 150 },
+    { field: "name", headerName: "Name", width: 150 },
+    { field: "capacity", headerName: "Capacity", width: 200 },
+    { field: "num_states", headerName: "Number of States", width: 200 },
+  ];
 
-    console.log("ReservoirStateView dataCleaned: ", dataCleaned);
+  return <DataGrid rows={dataCleaned} columns={columns} />;
+};
 
-    const columns = [
-        { field: "id", headerName: "ID", width: 150 },
-        { field: "date", headerName: "Date", width: 150 },
-        { field: "volume", headerName: "Current Volume", width: 200 },
-        { field: "capacity", headerName: "Capacity", width: 200},
-        { field: "reservoirName", headerName: "Reservoir", width: 200 },
-        { field: "reservoirUuid", headerName: "Reservoir UUID", width: 200 }
-    ];
+export const ReservoirStateUIView = () => {
+  const [startDate, setStartDate] = React.useState("2012-01-01");
+  const [endDate, setEndDate] = React.useState("2013-03-31");
+  const { data, isLoading } = useGetReservoirsQuery();
+  const [reservoir_uuids, setReservoirUuids] = React.useState([]);
 
-    const {series, xvalues} = getChartData(dataCleaned);
-    
+  if (isLoading || data == undefined) {
+    return <div>Loading...</div>;
+  }
 
+  /* Console log the data */
+  console.log("ReservoirsView data for select: ", data);
 
-    return (
-        <div>
-            <h1>Reservoir State</h1>
-            <LineChart 
-                xAxis={[{
-                      id: 'years',
-                      data: xvalues,
-                      scaleType: 'band',
-                      valueFormatter: (value) => value.toString(),
-}]}
-            
-                series={series} width={800} height={600}/>
-            <DataGrid rows={dataCleaned} columns={columns}/>
-            
-        </div>
-    );
+  const handleReservoirUuidsChange = (event) => {
+    console.log("Event target: ", event.target);
+    const selectedUuids = event.target.value;
+    setReservoirUuids(selectedUuids);
+  };
 
-    
+  const handleStartDateChange = (event) => {
+    setStartDate(event.target.value);
+  };
 
+  const handleEndDateChange = (event) => {
+    setEndDate(event.target.value);
+  };
 
-    
-    
+  const inputs = {
+    is_first_of_month: false,
+    reservoir_uuids: reservoir_uuids.map((row) => row.uuid),
+    start_date: startDate,
+    end_date: endDate,
+  };
 
+  return (
+    <div>
+      <FormControl>
+        <InputLabel htmlFor="reservoir-uuids">Reservoir UUIDs</InputLabel>
+        <Select
+          id="reservoir-uuids"
+          multiple
+          value={reservoir_uuids}
+          onChange={handleReservoirUuidsChange}
+          input={<Input />}
+          renderValue={(selected) => selected.map((s) => s.name).join(", ")}
+        >
+          {data.map((row) => (
+            <MenuItem key={row.uuid} value={row}>
+              {row.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      <FormControl>
+        <InputLabel htmlFor="start-date">Start Date</InputLabel>
+        <Input
+          id="start-date"
+          type="date"
+          value={startDate}
+          onChange={handleStartDateChange}
+        />
+      </FormControl>
+      <FormControl>
+        <InputLabel htmlFor="end-date">End Date</InputLabel>
+        <Input
+          id="end-date"
+          type="date"
+          value={endDate}
+          onChange={handleEndDateChange}
+        />
+      </FormControl>
+      {/* <ReservoirsView /> */}
+      <ReservoirStateView {...inputs} />
+    </div>
+  );
+};
 
-    
+export const ReservoirStateView = (inputs) => {
+  const { data, isLoading: isLoadingState } = useGetDailyDataQuery(inputs);
 
+  if (isLoadingState || data == undefined) {
+    return <div>Loading...</div>;
+  }
+  console.log("Rain data: ", data);
+
+  const { dataCleaned, columns } = getTableData(data);
+  const { series, xvalues } = getChartData(dataCleaned);
+
+  console.log("ReservoirStateView dataCleaned: ", dataCleaned);
+  console.log("ReservoirStateView series: ", series);
+
+  const yAxis = [
+    {
+      id: "fill",
+      scaleType: "linear",
+      label: "Percentage",
+      valueFormatter: (value) => value.toString(),
+    },
+    {
+      id: "rain",
+      scaleType: "linear",
+      label: "Rainfall",
+      valueFormatter: (value) => value.toString(),
+    },
+  ];
+
+  const xAxis = [
+    {
+      id: "years",
+      data: xvalues,
+      scaleType: "band",
+      valueFormatter: (value) => value.toString(),
+    },
+  ];
+
+  return (
+    <div>
+      <h1>Reservoir State</h1>
+      <LineChart
+        xAxis={xAxis}
+        yAxis={yAxis}
+        series={series}
+        leftAxis="fill"
+        rightAxis="rain"
+        width={800}
+        height={600}
+      />
+      <DataGrid rows={dataCleaned} columns={columns} />
+    </div>
+  );
 };
