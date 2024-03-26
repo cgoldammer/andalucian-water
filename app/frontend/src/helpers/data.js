@@ -1,11 +1,9 @@
-export const getChartData = (data) => {
+export const getChartData = (data, timeOption) => {
   const uuids = [...new Set(data.map((row) => row.reservoirUuid))];
   const datesJson = [
     ...new Set(data.map((row) => JSON.stringify(row.date))),
   ].sort();
   const dates = datesJson.map((date) => JSON.parse(date));
-
-  console.log("Dates: ", dates);
 
   const isEmpty = (arr) => {
     const allNulls = arr.every((value) => value === null);
@@ -38,20 +36,31 @@ export const getChartData = (data) => {
       type: "line",
       data: values,
       id: lineId + uuid,
-      label: lineId + ":" + rows[0].reservoirName,
+      label: lineId,
     };
   };
 
-  const extractorState = (row) => row.volume;
+  const extractorState = (row) => row.volume / row.capacity;
 
   const seriesState = uuids.map((uuid) =>
     getValuesForUuid(uuid, extractorState, "State")
   );
 
-  const extractorRain = (row) => row.rainAmount;
-  const seriesRain = uuids.map((uuid) =>
-    getValuesForUuid(uuid, extractorRain, "Rain")
-  );
+  var seriesRain;
+  if (timeOption == "day") {
+    seriesRain = uuids.map((uuid) =>
+      getValuesForUuid(uuid, (row) => row.rainAmount, "Rain")
+    );
+  } else {
+    seriesRain = uuids.map((uuid) =>
+      getValuesForUuid(
+        uuid,
+        (row) => row.rainAmountCumulative / row.rainAmountCumulativeHistorical,
+        "Rain"
+      )
+    );
+  }
+
   const series = seriesState.concat(seriesRain).filter((item) => item !== null);
 
   return {
@@ -60,7 +69,7 @@ export const getChartData = (data) => {
   };
 };
 
-export const getTableData = (data) => {
+export const getTableData = (data, timeOption = "day") => {
   const dataCleaned = data.map((row) => {
     return {
       id: row.reservoir.uuid + row.date,
@@ -70,16 +79,110 @@ export const getTableData = (data) => {
       reservoirName: row.reservoir.name,
       reservoirUuid: row.reservoir.uuid,
       rainAmount: row.rainfall ? row.rainfall.amount : null,
+      rainAmountCumulative: row.rainfall
+        ? row.rainfall.amount_cumulative
+        : null,
+
+      rainAmountCumulativeHistorical: row.rainfall
+        ? row.rainfall.amount_cumulative_historical
+        : null,
+      rainAmountCumulativeRelative: row.rainfall
+        ? row.rainfall.amount_cumulative /
+          row.rainfall.amount_cumulative_historical
+        : null,
     };
   });
-  const columns = [
-    { field: "id", headerName: "ID", width: 150 },
-    { field: "date", headerName: "Date", width: 150 },
-    { field: "volume", headerName: "Current Volume", width: 200 },
-    { field: "capacity", headerName: "Capacity", width: 200 },
-    { field: "reservoirName", headerName: "Reservoir", width: 200 },
-    { field: "reservoirUuid", headerName: "Reservoir UUID", width: 200 },
+
+  const dataAdded = addLaggedVolume(dataCleaned);
+
+  const rainFormatter = (params) =>
+    params.value != null ? params.value.toFixed(1) : null;
+
+  const colRain = {
+    field: "rainAmount",
+    headerName: "Daily Rain",
+    width: 100,
+    renderCell: rainFormatter,
+  };
+
+  const colVolumeLag = {
+    field: "volumeLagged",
+    headerName: "Volume Lagged",
+    width: 100,
+  };
+  const colVolumeDiffRelative = {
+    field: "volumeDiffRelative",
+    headerName: "Volume Difference Relative",
+    width: 100,
+  };
+
+  const columnsRaw = [
+    { field: "date", headerName: "Date", width: 100 },
+    { field: "volume", headerName: "Volume", width: 100 },
+    timeOption == "year" ? colVolumeLag : null,
+    timeOption == "year" ? colVolumeDiffRelative : null,
+    { field: "reservoirName", headerName: "Reservoir Name", width: 200 },
+    { field: "capacity", headerName: "Capacity", width: 100 },
+    timeOption == "day" ? colRain : null,
+    {
+      field: "rainAmountCumulative",
+      headerName: "Rain Amount Cumulative",
+      width: 200,
+      renderCell: rainFormatter,
+    },
+    {
+      field: "rainAmountCumulativeHistorical",
+      headerName: "Rain Amount Cumulative Historical",
+      width: 200,
+      renderCell: rainFormatter,
+    },
+    {
+      field: "rainAmountCumulativeRelative",
+      headerName: "Rain Amount Cumulative Relative",
+      width: 200,
+      renderCell: rainFormatter,
+    },
   ];
 
-  return { dataCleaned, columns };
+  // Remove all null columns
+  const columns = columnsRaw.filter((item) => item !== null);
+
+  return { dataCleaned: dataAdded, columns };
+};
+
+export const dateString = (date) => {
+  return date.toISOString().split("T")[0];
+};
+
+export const addDay = (date, i) => {
+  const dateCopy = new Date(date);
+  dateCopy.setDate(dateCopy.getDate() + i);
+  return dateCopy;
+};
+
+export const addYear = (date, i) => {
+  const dateCopy = new Date(date);
+  dateCopy.setFullYear(dateCopy.getFullYear() + i);
+  return dateCopy;
+};
+
+export const addLaggedVolume = (data) => {
+  const dataWithLaggedVolume = data.map((row) => {
+    const originalDate = new Date(row.date);
+    const date = dateString(addYear(originalDate, -1));
+
+    const rowLagged = data.find(
+      (row2) => row2.date == date && row.reservoirUuid == row2.reservoirUuid
+    );
+    return {
+      ...row,
+      volumeLagged: rowLagged ? rowLagged.volume : null,
+      volumeDiff: rowLagged ? row.volume - rowLagged.volume : null,
+      volumeDiffRelative: rowLagged
+        ? (row.volume - rowLagged.volume) / rowLagged.capacity
+        : null,
+    };
+  });
+
+  return dataWithLaggedVolume;
 };

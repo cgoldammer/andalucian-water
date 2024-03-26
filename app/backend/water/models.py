@@ -39,6 +39,8 @@ class Reservoir(UuidModel):
 class RainFall(UuidModel):
     date = models.DateField()
     amount = models.FloatField()
+    amount_cumulative = models.FloatField()
+    amount_cumulative_historical = models.FloatField()
     reservoir = models.ForeignKey(
         Reservoir, on_delete=models.CASCADE, related_name="reservoir_rainfall"
     )
@@ -94,9 +96,21 @@ class ReservoirSerializer2(serializers.ModelSerializer):
 
 
 class RainFallSerializer(serializers.ModelSerializer):
-
     reservoir = ReservoirSerializer()
 
     class Meta:
         model = RainFall
-        fields = ["uuid", "date", "amount", "reservoir"]
+        fields = [
+            "uuid",
+            "date",
+            "amount",
+            "amount_cumulative",
+            "amount_cumulative_historical",
+            "reservoir",
+        ]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if np.isnan(data["amount"]):
+            data["amount"] = -1
+        return data

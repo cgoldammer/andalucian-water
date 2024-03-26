@@ -16,45 +16,38 @@ from rest_framework import serializers
 log = logging.getLogger(__name__)
 
 
-def get_rainfall_data(
-    num_obs, start_date, end_date, is_first_of_month, reservoir_uuids
-):
-    states = RainFall.objects.all()
-
-    assert len(states) > 0
-    if reservoir_uuids:
-        reservoir_list = reservoir_uuids.split(",")
-        states = states.filter(reservoir__uuid__in=reservoir_list)
-
-    if start_date and end_date:
-        states = states.filter(date__gte=start_date, date__lte=end_date).order_by(
-            "reservoir__uuid", "date"
+def get_filters(q, num_obs, start_date, end_date, is_first_of_year, reservoir_uuids):
+    log.info("Num at start: %s", q.count())
+    q = q.filter(date__gte=start_date, date__lte=end_date).order_by(
+        "reservoir__uuid", "date"
+    )
+    if is_first_of_year:
+        q = (
+            q.filter(date__day=1)
+            .filter(date__month=9)
+            .order_by("reservoir__uuid", "date")
         )
 
-    states = states[0:num_obs]
-    return states
+    log.info("Num after first: %s", q.count())
+    reservoir_list = reservoir_uuids.split(",")
+    q = q.filter(reservoir__uuid__in=reservoir_list)
+    return q
 
 
 def get_reservoir_states_data(
-    num_obs, start_date, end_date, is_first_of_month, reservoir_uuids
+    num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
 ):
     states = ReservoirState.objects.all()
-    log.info(f"states: {len(states)}")
-    if start_date and end_date:
-        states = states.filter(date__gte=start_date, date__lte=end_date).order_by(
-            "reservoir__uuid", "date"
-        )
-    log.info(f"after dates: {len(states)}")
-    if is_first_of_month:
-        states = states.filter(date__day=1).order_by("reservoir__uuid", "date")
-    log.info(f"after firts: {len(states)}")
-    if reservoir_uuids:
-        reservoir_list = reservoir_uuids.split(",")
-        states = states.filter(reservoir__uuid__in=reservoir_list)
-    log.info(f"after reservoir: {len(states)}")
-    states = states[0:num_obs]
+    return get_filters(
+        states, num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
+    )
 
-    return states
+
+def get_rainfall_data(num_obs, start_date, end_date, is_first_of_year, reservoir_uuids):
+    states = RainFall.objects.all()
+    return get_filters(
+        states, num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
+    )
 
 
 def get_reservoir_data():
@@ -64,19 +57,18 @@ def get_reservoir_data():
     return reservoirs
 
 
-def get_daily_data(num_obs, start_date, end_date, is_first_of_month, reservoir_uuids):
+def get_wide_data(num_obs, start_date, end_date, is_first_of_year, reservoir_uuids):
 
     # Create a table that's a full outer join of the ReservoirState and RainFall tables
     # join on the date and reservoir_uuid columns
     # use the ORM to create the join
+    log.info("Getting wide data")
     states = get_reservoir_states_data(
-        num_obs, start_date, end_date, is_first_of_month, reservoir_uuids
+        num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
     )
     rainfall = get_rainfall_data(
-        num_obs, start_date, end_date, is_first_of_month, reservoir_uuids
+        num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
     )
-
-    assert len(rainfall) > 0
 
     def group_records(records):
         grouped = defaultdict(lambda: {"Rainfall": None, "ReservoirState": None})
@@ -97,11 +89,17 @@ def get_daily_data(num_obs, start_date, end_date, is_first_of_month, reservoir_u
             combined_group[key]["ReservoirState"] = reservoir_grouped[key]
 
     expanded = []
-    for key, value in combined_group.items():
+    for key, value in sorted(combined_group.items()):
+
+        if not value["ReservoirState"] or not value["Rainfall"]:
+            continue
+
+        reservoir = value["ReservoirState"].reservoir
+
         expanded.append(
             {
                 "date": key[0],
-                "reservoir": value["ReservoirState"].reservoir,
+                "reservoir": reservoir,
                 "rainfall": value["Rainfall"],
                 "reservoir_state": value["ReservoirState"],
             }

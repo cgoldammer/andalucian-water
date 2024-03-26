@@ -5,6 +5,7 @@ import { faker } from "@faker-js/faker";
 import seedrandom from "seedrandom";
 import { defaultImageFilename, positionAndalucia } from "../texts";
 import { setRandom } from "txtgen";
+import { dateString } from "../helpers/data";
 
 import { store } from "../store";
 import {
@@ -43,34 +44,36 @@ if (useSeededRNG) {
   faker.seed(seedDate.getTime());
 }
 
-export const db = factory({
-  user: {
-    uuid: primaryKey(String),
-    name: String,
-  },
-  location: {
-    uuid: primaryKey(String),
-    x: Number,
-    y: Number,
-  },
-  reservoir: {
-    uuid: primaryKey(String),
-    name: String,
-    capacity: Number,
-  },
-  reservoirState: {
-    uuid: primaryKey(String),
-    date: Date,
-    volume: Number,
-    reservoir: oneOf("reservoir"),
-  },
-  rainfall: {
-    uuid: primaryKey(String),
-    date: Date,
-    amount: Number,
-    reservoir: oneOf("reservoir"),
-  },
-});
+export const getDB = () => {
+  return factory({
+    user: {
+      uuid: primaryKey(String),
+      name: String,
+    },
+    location: {
+      uuid: primaryKey(String),
+      x: Number,
+      y: Number,
+    },
+    reservoir: {
+      uuid: primaryKey(String),
+      name: String,
+      capacity: Number,
+    },
+    reservoirState: {
+      uuid: primaryKey(String),
+      date: String,
+      volume: Number,
+      reservoir: oneOf("reservoir"),
+    },
+    rainfall: {
+      uuid: primaryKey(String),
+      date: String,
+      amount: Number,
+      reservoir: oneOf("reservoir"),
+    },
+  });
+};
 
 export const createReservoir = () => {
   return {
@@ -81,7 +84,7 @@ export const createReservoir = () => {
 };
 
 export const createRainfall = () => {
-  const date = faker.date.recent();
+  const date = dateString(faker.date.recent());
   const amount = faker.datatype.number();
   return {
     uuid: faker.datatype.uuid(),
@@ -91,7 +94,7 @@ export const createRainfall = () => {
 };
 
 export const createReservoirState = () => {
-  const date = faker.date.recent();
+  const date = dateString(faker.date.recent());
   const volume = faker.datatype.number();
   return {
     uuid: faker.datatype.uuid(),
@@ -100,37 +103,11 @@ export const createReservoirState = () => {
   };
 };
 
-const noiseSize = 0.03;
-const getRandomLocation = () => {
-  const y = positionAndalucia[0] + (rng() - 0.5) * noiseSize;
-  const x = positionAndalucia[1] + (rng() - 0.5) * noiseSize;
-  return { x, y };
-};
-
-const createLocation = () => {
-  const loc = getRandomLocation();
-  return {
-    uuid: faker.datatype.uuid(),
-    x: loc.x,
-    y: loc.y,
-  };
-};
-
-const serializeLocation = (location) => {
-  return {
-    ...location,
-  };
-};
-
 const dateStart = new Date(2021, 1, 1);
 const numDates = 1;
 const numReservoirs = 4;
 
-const addMockData = () => {
-  for (let i = 0; i < numLocations; i++) {
-    db.location.create(createLocation());
-  }
-
+const addMockData = (db) => {
   for (let i = 0; i < numReservoirs; i++) {
     const reservoir = db.reservoir.create(createReservoir());
 
@@ -148,7 +125,7 @@ const addMockData = () => {
   db.user.create({ uuid: faker.datatype.uuid(), name: "TestUser" });
 };
 
-export const getReservoirStates = () => {
+export const getReservoirStates = (db) => {
   const reservoirStates = db.reservoirState.getAll().map((state) => {
     const reservoir = db.reservoir.findFirst({
       where: {
@@ -162,8 +139,8 @@ export const getReservoirStates = () => {
   return reservoirStates;
 };
 
-export const getDailyData = () => {
-  const reservoirStates = getReservoirStates();
+export const getDailyData = (db) => {
+  const reservoirStates = getReservoirStates(db);
   const rainfalls = db.rainfall.getAll();
   const reservoirs = db.reservoir.getAll();
 
@@ -177,7 +154,7 @@ export const getDailyData = () => {
   return dailyData;
 };
 
-export const handlers = [
+export const handlers = (db) => [
   http.get("/fakeApi/test/*", ({ params }) => {
     return HttpResponse.json(
       { message: "Hello from the fake API!" },
@@ -198,14 +175,13 @@ export const handlers = [
     const matchResponseSeconds = store.getState().settings.matchResponseSeconds;
     console.log("Responding in " + matchResponseSeconds + " seconds");
     const reservoirStates = getReservoirStates();
-    console.log("Reservoir states: ", reservoirStates);
     return HttpResponse.json(
       reservoirStates,
       { status: 201 },
       matchResponseSeconds * 1000
     );
   }),
-  http.get("/fakeApi/get_daily_data", (req, res, ctx) => {
+  http.get("/fakeApi/get_wide", (req, res, ctx) => {
     const matchResponseSeconds = store.getState().settings.matchResponseSeconds;
     console.log("Responding in " + matchResponseSeconds + " seconds");
     const dailyData = getDailyData();
@@ -221,9 +197,11 @@ export function isJestWorker() {
   return process.env.JEST_WORKER_ID !== undefined;
 }
 
-export const worker = isJestWorker() ? undefined : setupWorker(...handlers);
+export const worker = isJestWorker()
+  ? undefined
+  : setupWorker(...handlers(getDB()));
 
 if (!isJestWorker()) {
-  addMockData();
+  addMockData(getDB());
   worker.start();
 }

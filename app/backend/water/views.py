@@ -149,104 +149,63 @@ class TimePeriod(Enum):
     MONTH = "month"
 
 
-@api_view(["GET"])
-# Allow full access to public users
-@authentication_classes([])
-@permission_classes([])
-def get_reservoir_states(request):
+class FilterRequest:
+    def __init__(self, request):
+        self.num_obs = request.GET.get("num_obs", num_obs_default)
+        self.start_date = request.GET.get("start_date", None)
+        self.end_date = request.GET.get("end_date", None)
+        self.is_first_of_year = request.GET.get("is_first_of_year", "false") != "false"
+        self.reservoir_uuids = request.GET.get("reservoir_uuids", None)
 
-    num_obs = request.GET.get("num_obs", num_obs_default)
-    start_date = request.GET.get("start_date", None)
-    end_date = request.GET.get("end_date", None)
-    is_first_of_month = request.GET.get("is_first_of_month", "false") != "false"
-    reservoir_uuids = request.GET.get("reservoir_uuids", None)
+        log.info("Is yearly: " + str(self.is_first_of_year))
 
-    # Print all request parameters
-    log.info(f"num_obs: {num_obs}")
-    log.info(f"start_date: {start_date}")
-    log.info(f"end_date: {end_date}")
-    log.info(f"is_first_of_month: {is_first_of_month,  type(is_first_of_month)}")
-    log.info(f"reservoir_uuids: {reservoir_uuids}")
-
-    # Require start_date and end_date
-    if not start_date or not end_date:
-        # Create a status for malformed input
-        return Response(
-            {"error": "start_date and end_date are required"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    states = data.get_reservoir_states_data(
-        num_obs, start_date, end_date, is_first_of_month, reservoir_uuids
-    )
-
-    serializer = ReservoirStateSerializer(states, many=True)
-    return Response(serializer.data)
+        self.inputs = {
+            "num_obs": self.num_obs,
+            "start_date": self.start_date,
+            "end_date": self.end_date,
+            "is_first_of_year": self.is_first_of_year,
+            "reservoir_uuids": self.reservoir_uuids,
+        }
 
 
-@api_view(["GET"])
-# Allow full access to public users
-@authentication_classes([])
-@permission_classes([])
-def get_rainfall(request):
-    num_obs = request.GET.get("num_obs", num_obs_default)
-    start_date = request.GET.get("start_date", "2023-01-01")
-    end_date = request.GET.get("end_date", "2023-02-01")
-    is_first_of_month = request.GET.get("is_first_of_month", "false") != "false"
-    reservoir_uuids = request.GET.get("reservoir_uuids", None)
+def createFilterRequest(handler, serializerForData):
 
-    # Return an error if is_first_of_month is true
-    if is_first_of_month:
-        return Response(
-            {"error": "is_first_of_month is not supported"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    if not start_date or not end_date:
-        # Create a status for malformed input
-        return Response(
-            {"error": "start_date and end_date are required"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    states = data.get_rainfall_data(num_obs, start_date, end_date, reservoir_uuids)
-    serializer = RainFallSerializer(states, many=True)
-    return Response(serializer.data)
+    @api_view(["GET"])
+    @authentication_classes([])
+    @permission_classes([])
+    def filter_request(request: Request):
+
+        filter_request = FilterRequest(request)
+        inputs = filter_request.inputs
+
+        # Require start_date and end_date
+        if not inputs["start_date"] or not inputs["end_date"]:
+            # Create a status for malformed input
+            return Response(
+                {"error": "start_date and end_date are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not inputs["reservoir_uuids"]:
+            return Response(
+                {"error": "reservoir_uuids is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        log.info("Inputs: " + str(inputs))
+        states = handler(**inputs)
+        # log.info("States: " + str(len(states)))
+
+        serializer = serializerForData(states, many=True)
+        log.info(serializer.data[0])
+
+        return Response(serializer.data)
+
+    return filter_request
 
 
-@api_view(["GET"])
-# Allow full access to public users
-@authentication_classes([])
-@permission_classes([])
-def get_daily_data(request):
-    print("RUNN")
-    num_obs = int(request.GET.get("num_obs", num_obs_default))
-    start_date = request.GET.get("start_date", "2023-01-01")
-    end_date = request.GET.get("end_date", "2023-02-01")
-    is_first_of_month = request.GET.get("is_first_of_month", "false") != "false"
-    reservoir_uuids = request.GET.get("reservoir_uuids", None)
-
-    log.info("reservoir_uuids: " + str(reservoir_uuids))
-
-    # Return an error if is_first_of_month is true
-    if is_first_of_month:
-        return Response(
-            {"error": "is_first_of_month is not supported"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    if not start_date or not end_date:
-        # Create a status for malformed input
-        return Response(
-            {"error": "start_date and end_date are required"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if not reservoir_uuids:
-        return Response(
-            {"error": "reservoir_uuids is required"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    states = data.get_daily_data(
-        num_obs, start_date, end_date, is_first_of_month, reservoir_uuids
-    )
-    serializer = data.DailyDataSerializer(states, many=True)
-    return Response(serializer.data)
+get_reservoir_states = createFilterRequest(
+    data.get_reservoir_states_data, ReservoirStateSerializer
+)
+get_rainfall = createFilterRequest(data.get_rainfall_data, RainFallSerializer)
+get_wide = createFilterRequest(data.get_wide_data, data.DailyDataSerializer)

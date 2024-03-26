@@ -31,7 +31,11 @@ import { useGetLoginTestQuery } from "./features/api/apiSlice";
 import { UserView, LoginView } from "./features/LoginView";
 
 import { setToken } from "./reducers/userReducer";
-import { ReservoirStateUIView } from "./features/ReservoirStateView";
+import {
+  ReservoirStateUIView,
+  ReservoirsView,
+  ScatterChart2,
+} from "./features/ReservoirStateView";
 
 const EmptyView = () => {
   return <div />;
@@ -40,7 +44,8 @@ const EmptyView = () => {
 const sections = (settings) => {
   const views = {
     admin: settings.hasAdmin ? AdminView : EmptyView,
-    table: ReservoirStateUIView,
+    table: ScatterChart2,
+    chart: ReservoirStateUIView,
     intro: IntroView,
     footer: FooterView,
   };

@@ -24,6 +24,10 @@ def fill_simple(
             state.save()
 
             rainfall = RainFall(
-                date=date, amount=random.uniform(0, 100), reservoir=reservoir
+                date=date,
+                amount=random.uniform(0, 100),
+                reservoir=reservoir,
+                amount_cumulative=random.uniform(0, 100),
+                amount_cumulative_historical=random.uniform(0, 100),
             )
             rainfall.save()

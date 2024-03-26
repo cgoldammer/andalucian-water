@@ -29,7 +29,6 @@ export function UserView() {
   if (isLoading || data == undefined) {
     return <div>Loading...</div>;
   }
-  console.log("UserView data: ", data)
   const user = data.user;
   return (
     <div>

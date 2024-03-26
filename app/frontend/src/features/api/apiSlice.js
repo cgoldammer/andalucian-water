@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import base64 from "base-64";
 const url = process.env.BACKENDURL;
-console.log("Backend: " + url);
+// console.log("Backend: " + url);
 
 export const apiSlice = createApi({
   reducerPath: "api",
@@ -16,7 +16,7 @@ export const apiSlice = createApi({
       return headers;
     },
   }),
-  tagTypes: ["User", "ReservoirState", "Reservoir"],
+  tagTypes: ["User", "ReservoirState", "Reservoir", "Daily"],
   credentials: "include",
   endpoints: (builder) => ({
     registerUser: builder.mutation({
@@ -72,18 +72,10 @@ export const apiSlice = createApi({
     }),
     getRainfall: builder.query({
       query: (data) => {
-        const { is_first_of_month, reservoir_uuids, start_date, end_date } =
+        const { is_first_of_year, reservoir_uuids, start_date, end_date } =
           data;
-        console.log(
-          "Getting data for rainfall: ",
-          reservoir_uuids,
-          " from ",
-          start_date,
-          " to ",
-          end_date
-        );
         return {
-          url: `/get_rainfall?is_first_of_month=${is_first_of_month}&reservoir_uuids=${reservoir_uuids}&start_date=${start_date}&end_date=${end_date}`,
+          url: `/get_rainfall?is_first_of_year=${is_first_of_year}&reservoir_uuids=${reservoir_uuids}&start_date=${start_date}&end_date=${end_date}`,
           method: "GET",
         };
       },
@@ -91,18 +83,10 @@ export const apiSlice = createApi({
     }),
     getReservoirStates: builder.query({
       query: (data) => {
-        const { is_first_of_month, reservoir_uuids, start_date, end_date } =
+        const { is_first_of_year, reservoir_uuids, start_date, end_date } =
           data;
-        console.log(
-          "Getting data for reservoirs: ",
-          reservoir_uuids,
-          " from ",
-          start_date,
-          " to ",
-          end_date
-        );
         return {
-          url: `/get_reservoir_states?is_first_of_month=${is_first_of_month}&reservoir_uuids=${reservoir_uuids}&start_date=${start_date}&end_date=${end_date}`,
+          url: `/get_reservoir_states?is_first_of_year=${is_first_of_year}&reservoir_uuids=${reservoir_uuids}&start_date=${start_date}&end_date=${end_date}`,
           method: "GET",
         };
       },
@@ -110,21 +94,16 @@ export const apiSlice = createApi({
     }),
     getDailyData: builder.query({
       query: (data) => {
-        const { reservoir_uuids, start_date, end_date } = data;
-        console.log(
-          "Getting data for reservoirs: ",
-          reservoir_uuids,
-          " from ",
-          start_date,
-          " to ",
-          end_date
-        );
+        const { isFirstOfYear, reservoirUuids, startDate, endDate } = data;
+        console.log("Reservoir UUIDs in function ", reservoirUuids);
+        const uuidsJoined = reservoirUuids.join(",");
+        const url = `/get_wide/?is_first_of_year=${isFirstOfYear}&reservoir_uuids=${uuidsJoined}&start_date=${startDate}&end_date=${endDate}`;
         return {
-          url: `/get_daily_data?reservoir_uuids=${reservoir_uuids}&start_date=${start_date}&end_date=${end_date}`,
+          url: url,
           method: "GET",
         };
       },
-      providesTags: ["ReservoirState"],
+      providesTags: ["Daily"],
     }),
   }),
 });

@@ -1,26 +1,21 @@
 import { createSlice } from "@reduxjs/toolkit";
-import {isDev} from "../helpers/helpers";
+import { isDev } from "../helpers/helpers";
 
-const viewNames = [
-  'intro', 'footer'
-]
+const viewNames = ["intro", "footer"];
 
-const viewNamesDev = [
-  'table', 'intro', 
-   'footer']
+const viewNamesDev = ["table", "chart", "intro", "footer"];
 
 const initialState = () => {
-
-  const adminViews = isDev ? ['admin'] : []
-  const otherViews = isDev ? viewNamesDev : viewNames
-  const viewsVisible = [...otherViews, ]
+  const adminViews = isDev ? ["admin"] : [];
+  const otherViews = isDev ? viewNamesDev : viewNames;
+  const viewsVisible = [...otherViews];
 
   return {
-    'matchResponseSeconds': 1,
+    matchResponseSeconds: 1,
     viewsVisible: viewsVisible,
-    hasAdmin: isDev
-  }
-} 
+    hasAdmin: isDev,
+  };
+};
 
 export const settingsSlice = createSlice({
   name: "settings",
@@ -33,10 +28,12 @@ export const settingsSlice = createSlice({
     setViewsVisible: (state, actions) => {
       const viewsVisible = actions.payload;
       state.viewsVisible = viewsVisible;
-    }
+    },
   },
 });
 
-export const { setMatchResponseSeconds, setViewsVisible } = settingsSlice.actions;
+export const { setMatchResponseSeconds, setViewsVisible } =
+  settingsSlice.actions;
 export default settingsSlice.reducer;
-export const getMatchResponseSecondsSelector = (state) => state.settings.matchResponseSeconds;
+export const getMatchResponseSecondsSelector = (state) =>
+  state.settings.matchResponseSeconds;

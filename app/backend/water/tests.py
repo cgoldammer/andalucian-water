@@ -98,16 +98,18 @@ class UserTestCase(AppTest):
 class ReservoirTestCase(AppTest):
     def setUp(self):
         super().setUp()
-        setup_script.fill_simple()
+
         state.set_mock_mode(True)
 
     def testGetReservoirs(self):
+        setup_script.fill_simple()
         reservoirs = data.get_reservoir_data()
 
         reservoirs_raw = Reservoir.objects.all()
         self.assertTrue(len(reservoirs) == len(reservoirs_raw))
 
     def testGetReservoirStates(self):
+        setup_script.fill_simple()
         reservoirs = Reservoir.objects.all()
         reservoir = reservoirs[0]
 
@@ -121,17 +123,39 @@ class ReservoirTestCase(AppTest):
 
         assert len(states) > 0
 
-    def testGetDailyData(self):
-        reservoirs = Reservoir.objects.all()
-        reservoir = reservoirs[0]
+    def testGetWideYearly(self):
+        num_reservoirs = 1
+        date_start = "2023-09-01"
+        date_end = "2024-01-01"
+        setup_script.fill_simple(num_reservoirs, date_start, date_end)
+        reservoir_uuid = str(Reservoir.objects.all()[0].uuid)
 
-        start_date = "1970-01-01"
-        end_date = "2999-01-01"
+        arguments = {
+            "num_obs": 1000,
+            "start_date": date_start,
+            "end_date": date_end,
+            "is_first_of_year": True,
+            "reservoir_uuids": reservoir_uuid,
+        }
+        states_year = data.get_wide_data(**arguments)
+        assert len(states_year) == num_reservoirs
 
-        num_obs = 10
-        states = data.get_daily_data(
-            num_obs, start_date, end_date, False, str(reservoir.uuid)
-        )
+        arguments["is_first_of_year"] = False
+        states_day = data.get_wide_data(**arguments)
+        assert len(states_day) >= num_reservoirs * 30
+
+    def testGetWideDaily(self):
+        setup_script.fill_simple()
+        reservoir_uuid = str(Reservoir.objects.all()[0].uuid)
+
+        arguments = {
+            "num_obs": 10,
+            "start_date": "1970-01-01",
+            "end_date": "2999-01-01",
+            "is_first_of_year": False,
+            "reservoir_uuids": reservoir_uuid,
+        }
+        states = data.get_wide_data(**arguments)
 
         # Ensure that both reservoirState and rainfall
         # are not null at least once in the states
@@ -148,6 +172,7 @@ class ReservoirTestCase(AppTest):
         assert first_res["rainfall"] is not None
 
     def testGetDailyView(self):
+        setup_script.fill_simple()
         reservoirs = Reservoir.objects.all()
         reservoir = reservoirs[0]
 
@@ -155,7 +180,7 @@ class ReservoirTestCase(AppTest):
         end_date = "2999-01-01"
 
         num_obs = 10
-        url = f"/api/get_daily_data/?num_obs={num_obs}&start_date={start_date}&end_date={end_date}&reservoir_uuids={reservoir.uuid}"
+        url = f"/api/get_wide/?num_obs={num_obs}&start_date={start_date}&end_date={end_date}&reservoir_uuids={reservoir.uuid}"
 
         response = self.client.get(url)
         # Assert that response is ok
