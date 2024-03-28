@@ -90,9 +90,7 @@ describe("Tests with data from db", () => {
     const daily = getDailyData(db);
 
     const { dataCleaned, columns } = getTableData(daily, "year");
-    // Expect that the dataCleaned does  contain the volumeLagged column
-    console.log(dataCleaned);
-    //console.log(columns);
+
     expect(columns.map((col) => col.field)).toContain("volumeLagged");
 
     // The volumeLagged should have (numYears - 1) * numReservoirs non-null values

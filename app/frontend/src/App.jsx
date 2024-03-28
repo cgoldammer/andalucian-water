@@ -23,19 +23,19 @@ import { theme, Image, NewButton } from "./helpers/helpersUI";
 import { isDev } from "./helpers/helpers";
 import { TopMenu } from "./features/MenuView";
 import { IntroView } from "./features/IntroView";
-import { MapView } from "./features/TryView";
 
 import { AdminView } from "./features/AdminView";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetLoginTestQuery } from "./features/api/apiSlice";
 import { UserView, LoginView } from "./features/LoginView";
-
+import { MapView } from "./features/MapView";
 import { setToken } from "./reducers/userReducer";
 import {
   ReservoirStateUIView,
   ReservoirsView,
   ScatterChart2,
-} from "./features/ReservoirStateView";
+  GapChart,
+} from "./features/reservoir/ReservoirStateView";
 
 const EmptyView = () => {
   return <div />;
@@ -44,7 +44,8 @@ const EmptyView = () => {
 const sections = (settings) => {
   const views = {
     admin: settings.hasAdmin ? AdminView : EmptyView,
-    table: ScatterChart2,
+    map: MapView,
+    table: GapChart,
     chart: ReservoirStateUIView,
     intro: IntroView,
     footer: FooterView,
@@ -113,6 +114,7 @@ export function App() {
             </Grid>
             <Grid container justifyContent="center" alignItems="center" xs={12}>
               <Routes>
+                {/* <Route path="/" element={<IntroView />} /> */}
                 <Route path="/" element={sectionsDivFull} />
                 <Route path="/explore" element={<MapView />} />
                 <Route path="/explore/:token" element={<MagicLogin />} />
