@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 
 import reservoirs from "../data/reservoirs.json";
 
@@ -37,39 +38,31 @@ import { MapContainer } from "react-leaflet/MapContainer";
 import { TileLayer } from "react-leaflet/TileLayer";
 import { useMap } from "react-leaflet/hooks";
 import { Marker } from "react-leaflet/Marker";
-import { Popup } from "react-leaflet/Popup";
-import { Polyline } from "react-leaflet/Polyline";
-import { ImageOverlay } from "react-leaflet/ImageOverlay";
-import { LatLngBounds } from "leaflet";
-import { Circle } from "react-leaflet/Circle";
+import { ReservoirView } from "./reservoir/ReservoirView";
+
+import { setReservoirUuidSelected } from "../reducers/uiReducer";
 
 console.log("Number of reservoirs: ", reservoirs.features.length);
 
 const position = [37.3891, -5.9845]; // Sevilla, Spain
 
-const callback = (reservoirName) => {
-  console.log("Callback: ", reservoirName);
-};
-
 function MyComponent() {
   const map = useMap();
+  const dispatch = useDispatch();
+
+  const callback = (reservoirUuid) => {
+    console.log(setReservoirUuidSelected);
+    console.log("Callback: ", reservoirUuid);
+    dispatch(setReservoirUuidSelected(reservoirUuid));
+  };
 
   useEffect(() => {
     const geoJsonLayer = L.geoJSON(reservoirs, {
       onEachFeature: (feature, layer) => {
-        layer.bindPopup(feature.properties.name);
-        callback(feature.properties.nombre);
-        const label = L.marker(layer.getBounds().getCenter(), {
-          icon: L.divIcon({
-            className: "label",
-            html: feature.properties.nombre,
-          }),
-        }).addTo(map);
-        layer.on("mouseover", () => {
-          label.addTo(map);
-        });
-        layer.on("mouseout", () => {
-          map.removeLayer(label);
+        const marker = L.marker(layer.getBounds().getCenter()).addTo(map);
+        marker.bindPopup(feature.properties.nombre);
+        marker.on("click", () => {
+          callback(feature.properties.reservoir_uuid);
         });
       },
     }).addTo(map);
@@ -81,12 +74,22 @@ function MyComponent() {
 }
 
 export const MapView = () => {
+  const reservoirUuidSelected = useSelector(
+    (state) => state.ui.reservoirUuidSelected
+  );
+  console.log("Selected: ", reservoirUuidSelected);
+
+  var resView = <div></div>;
+  if (reservoirUuidSelected) {
+    resView = <ReservoirView reservoirUuid={reservoirUuidSelected} />;
+  }
+
   return (
     <div style={{ position: "relative" }}>
-      <div>HI</div>
+      <div>Selected: {reservoirUuidSelected || "nothing"}</div>
       <MapContainer
         center={position}
-        zoom={6}
+        zoom={11}
         scrollWheelZoom={false}
         style={{ height: "300px", width: "600px" }}
       >
@@ -96,6 +99,7 @@ export const MapView = () => {
         />
         <MyComponent />
       </MapContainer>
+      {resView}
     </div>
   );
 };

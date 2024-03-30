@@ -3,7 +3,7 @@ import { isDev } from "../helpers/helpers";
 
 const viewNames = ["intro", "footer"];
 
-const viewNamesDev = ["map", "table", "chart", "intro", "footer"];
+const viewNamesDev = ["table", "map", "chart", "intro", "footer"];
 
 const initialState = () => {
   const adminViews = isDev ? ["admin"] : [];

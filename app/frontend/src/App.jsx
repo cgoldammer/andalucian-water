@@ -30,12 +30,8 @@ import { useGetLoginTestQuery } from "./features/api/apiSlice";
 import { UserView, LoginView } from "./features/LoginView";
 import { MapView } from "./features/MapView";
 import { setToken } from "./reducers/userReducer";
-import {
-  ReservoirStateUIView,
-  ReservoirsView,
-  ScatterChart2,
-  GapChart,
-} from "./features/reservoir/ReservoirStateView";
+import { ReservoirsView } from "./features/reservoir/ReservoirsView";
+import { GapChart } from "./features/reservoir/GapChart";
 
 const EmptyView = () => {
   return <div />;
@@ -46,7 +42,6 @@ const sections = (settings) => {
     admin: settings.hasAdmin ? AdminView : EmptyView,
     map: MapView,
     table: GapChart,
-    chart: ReservoirStateUIView,
     intro: IntroView,
     footer: FooterView,
   };
@@ -55,7 +50,9 @@ const sections = (settings) => {
   const viewsVisibleList = settings.viewsVisible;
   const viewsVisible = { admin: views.admin };
   viewsVisibleList.forEach((view) => {
-    viewsVisible[view] = views[view];
+    if (views[view]) {
+      viewsVisible[view] = views[view];
+    }
   });
   return viewsVisible;
 };
@@ -99,10 +96,10 @@ export function App() {
   console.log("Settings: ", settings);
   const sectionsDivFull = sectionsDiv(settings);
   const token = useSelector((state) => state.userData.token);
-  const { data, error, isLoading } = useGetLoginTestQuery({
-    skip: token != undefined,
-  });
-  console.log("Login data: ", data);
+  // const { data, error, isLoading } = useGetLoginTestQuery({
+  //   skip: token != undefined,
+  // });
+  // console.log("Login data: ", data);
 
   return (
     <ThemeProvider theme={theme}>
@@ -118,7 +115,7 @@ export function App() {
                 <Route path="/" element={sectionsDivFull} />
                 <Route path="/explore" element={<MapView />} />
                 <Route path="/explore/:token" element={<MagicLogin />} />
-                <Route path="/profile" element={<UserView />} />
+                {/* <Route path="/profile" element={<UserView />} /> */}
                 <Route path="/register" element={<LoginView />} />
               </Routes>
             </Grid>

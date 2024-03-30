@@ -2,6 +2,7 @@ import { configureStore, createListenerMiddleware } from "@reduxjs/toolkit";
 import { apiSlice } from "./features/api/apiSlice";
 import userReducer from "./reducers/userReducer";
 import settingsReducer from "./reducers/settingsReducer";
+import uiReducer from "./reducers/uiReducer";
 const listenerMiddleware = createListenerMiddleware();
 
 // export const updateToken(state, actions) => {
@@ -13,6 +14,7 @@ const reducer = {
   [apiSlice.reducerPath]: apiSlice.reducer,
   userData: userReducer,
   settings: settingsReducer,
+  ui: uiReducer,
 };
 
 const middleware = (getDefaultMiddleware) =>

@@ -52,3 +52,8 @@ export const listOfListToList = (listOfList) => {
     return acc;
   }, []);
 };
+
+export const TimeOptions = {
+  DAY: "day",
+  YEAR: "year",
+};

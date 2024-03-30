@@ -77,6 +77,7 @@ export const getTableData = (data, timeOption = "day") => {
       volume: row.reservoir_state ? row.reservoir_state.volume : null,
       capacity: row.reservoir.capacity,
       reservoirName: row.reservoir.name,
+      reservoirProvince: row.reservoir.province,
       reservoirUuid: row.reservoir.uuid,
       rainAmount: row.rainfall ? row.rainfall.amount : null,
       rainAmountCumulative: row.rainfall
@@ -148,6 +149,16 @@ export const getTableData = (data, timeOption = "day") => {
   const columns = columnsRaw.filter((item) => item !== null);
 
   return { dataCleaned: dataAdded, columns };
+};
+
+export const constShortfall = 0.5;
+export const addShortfall = (data, rainfallExpected) => {
+  return data.map((row) => {
+    return {
+      ...row,
+      shortfall: row.capacity * constShortfall * (1 - rainfallExpected),
+    };
+  });
 };
 
 export const dateString = (date) => {

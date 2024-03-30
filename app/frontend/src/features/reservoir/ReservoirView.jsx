@@ -4,13 +4,10 @@ import { useGetDailyDataQuery } from "../api/apiSlice";
 import { getChartData, getTableData } from "../../helpers/data";
 import { DataGrid } from "@mui/x-data-grid";
 import { LineChart } from "@mui/x-charts/LineChart";
+import { FormControl, Input, InputLabel } from "@mui/material";
+import { Select, MenuItem } from "@mui/material";
 
-const timeOptionDefault = TimeOptions.DAY;
-const defaultStartDate = "2023-08-01";
-const defaultEndDate = "2023-10-01";
-
-const yearlyStartDate = "2000-01-01";
-const yearlyEndDate = "2024-12-31";
+import { timeOptionDefault, datesDefault } from "../../helpers/defaults";
 
 export const getYAxisWater = (timeOption) => {
   const data = timeOptionData[timeOption];
@@ -98,26 +95,18 @@ export const CreateGraph = (inputs) => {
 
 export const ReservoirView = (props) => {
   const { reservoirUuid } = props;
-  const [startDate, setStartDate] = React.useState(defaultStartDate);
-  const [endDate, setEndDate] = React.useState(defaultEndDate);
   const [timeOption, setTimeOption] = React.useState(timeOptionDefault);
-
-  if (isLoading || data == undefined) {
-    return <div>Loading...</div>;
-  }
+  const [startDate, setStartDate] = React.useState(
+    datesDefault[timeOption].start
+  );
+  const [endDate, setEndDate] = React.useState(datesDefault[timeOption].end);
 
   const handleTimeOptionChange = (event) => {
     const timeOption = event.target.value;
-    if (timeOption == TimeOptions.YEAR) {
-      setStartDate(yearlyStartDate);
-      setEndDate(yearlyEndDate);
-      setTimeOption(timeOption);
-    }
-    if (timeOption == TimeOptions.DAY) {
-      setStartDate(defaultStartDate);
-      setEndDate(defaultEndDate);
-      setTimeOption(timeOption);
-    }
+
+    setStartDate(datesDefault[timeOption].start);
+    setEndDate(datesDefault[timeOption].end);
+    setTimeOption(timeOption);
   };
 
   const handleStartDateChange = (event) => {
@@ -129,12 +118,12 @@ export const ReservoirView = (props) => {
   };
 
   const inputs = {
-    reservoir_uuids: reservoirUuid,
-    start_date: startDate,
-    end_date: endDate,
+    reservoirUuids: [reservoirUuid],
+    startDate: startDate,
+    endDate: endDate,
   };
 
-  const inputsValid = inputs.reservoir_uuids != undefined;
+  const inputsValid = inputs.reservoirUuids != undefined;
   var stateView = <div>Loading...</div>;
   if (inputsValid) {
     stateView = <CreateGraph {...inputs} timeOption={timeOption} />;

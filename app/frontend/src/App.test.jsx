@@ -14,6 +14,7 @@ import {
   dateString,
 } from "./helpers/data";
 import { faker } from "@faker-js/faker";
+import "@testing-library/jest-dom";
 
 const addMockDataTest = (
   db,
