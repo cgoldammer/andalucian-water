@@ -1,13 +1,16 @@
 import React from "react";
+
+import { timeOptionDefault, datesDefault } from "../../helpers/defaults";
+
 import { TimeOptions } from "../../helpers/helpers";
+
 import { useGetDailyDataQuery } from "../api/apiSlice";
 import { getChartData, getTableData } from "../../helpers/data";
 import { DataGrid } from "@mui/x-data-grid";
-import { LineChart } from "@mui/x-charts/LineChart";
+
+import { LineChart } from "@mui/x-charts";
 import { FormControl, Input, InputLabel } from "@mui/material";
 import { Select, MenuItem } from "@mui/material";
-
-import { timeOptionDefault, datesDefault } from "../../helpers/defaults";
 
 export const getYAxisWater = (timeOption) => {
   const data = timeOptionData[timeOption];
@@ -157,6 +160,7 @@ export const ReservoirView = (props) => {
 
   return (
     <div>
+      <div> {reservoirUuid} </div>
       <FormControl>
         <InputLabel htmlFor="time-option">Time Option</InputLabel>
         <Select

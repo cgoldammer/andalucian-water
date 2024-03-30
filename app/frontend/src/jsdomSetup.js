@@ -18,6 +18,8 @@ function copyProps(src, target) {
   Object.defineProperties(target, props);
 }
 
+// window.$RefreshReg$ = () => {};
+// window.$RefreshSig$ = () => () => {};
 global.window = window;
 global.document = window.document;
 global.navigator = {

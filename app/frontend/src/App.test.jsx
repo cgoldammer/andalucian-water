@@ -16,31 +16,7 @@ import {
 import { faker } from "@faker-js/faker";
 import "@testing-library/jest-dom";
 
-const addMockDataTest = (
-  db,
-  numReservoirs,
-  numDates,
-  dateGenerator = addDay
-) => {
-  const dateStart = new Date(2021, 1, 1);
-  for (let i = 0; i < numReservoirs; i++) {
-    const reservoir = db.reservoir.create(createReservoir());
-
-    /* Loop over all dates between dateStart and dateEnd */
-    for (let i = 0; i < numDates; i++) {
-      const date = dateGenerator(dateStart, i);
-      const reservoirState = createReservoirState();
-      reservoirState.date = dateString(date);
-      reservoirState.reservoir = reservoir;
-      db.reservoirState.create(reservoirState);
-
-      const rainfall = createRainfall();
-      rainfall.date = date;
-      rainfall.reservoir = reservoir;
-      db.rainfall.create(rainfall);
-    }
-  }
-};
+import { addMockDataTest } from "./helpers/fixture";
 
 describe("Tests of utilities", () => {
   test("addDay adds a day", () => {

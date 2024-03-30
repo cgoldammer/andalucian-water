@@ -154,37 +154,40 @@ export const getDailyData = (db) => {
   return dailyData;
 };
 
-export const handlers = (db) => [
-  http.get("/fakeApi/test/*", ({ params }) => {
+export const defaultStub = "/fakeApi";
+
+export const handlers = (db, defaultStub = defaultStub) => [
+  http.get(defaultStub + "/test/*", ({ params }) => {
     return HttpResponse.json(
       { message: "Hello from the fake API!" },
       { status: 201 }
     );
   }),
-  http.post("/fakeApi/register", (req, res, ctx) => {
+  http.post(defaultStub + "/register", (req, res, ctx) => {
     return res(ctx.json("Basic tokenFromServer"));
   }),
-  http.post("/fakeApi/login", (req, res, ctx) => {
+  http.post(defaultStub + "login", (req, res, ctx) => {
     return res(ctx.json("Basic tokenFromServer"));
   }),
-  http.get("/fakeApi/get_user", (req, res, ctx) => {
+  http.get(defaultStub + "/get_user", (req, res, ctx) => {
     const user = db.user.getAll()[0];
     return HttpResponse.json(user, { status: 201 });
   }),
-  http.get("/fakeApi/get_reservoir_states", (req, res, ctx) => {
+  http.get(defaultStub + "/get_reservoir_states", (req, res, ctx) => {
     const matchResponseSeconds = store.getState().settings.matchResponseSeconds;
     console.log("Responding in " + matchResponseSeconds + " seconds");
-    const reservoirStates = getReservoirStates();
+    const reservoirStates = getReservoirStates(db);
     return HttpResponse.json(
       reservoirStates,
       { status: 201 },
       matchResponseSeconds * 1000
     );
   }),
-  http.get("/fakeApi/get_wide", (req, res, ctx) => {
+  http.get(defaultStub + "/get_wide", (req, res, ctx) => {
+    console.log("Running get_wide");
     const matchResponseSeconds = store.getState().settings.matchResponseSeconds;
     console.log("Responding in " + matchResponseSeconds + " seconds");
-    const dailyData = getDailyData();
+    const dailyData = getDailyData(db);
     return HttpResponse.json(
       dailyData,
       { status: 201 },

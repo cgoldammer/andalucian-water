@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import base64 from "base-64";
-const url = process.env.BACKENDURL;
-// console.log("Backend: " + url);
+const url = process.env.BACKENDURL || "http://localhost:9999/";
+console.log("Backend: " + url);
 
 export const apiSlice = createApi({
   reducerPath: "api",

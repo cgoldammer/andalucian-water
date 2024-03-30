@@ -4,6 +4,11 @@
     , "@babel/preset-react"
   ],
   "plugins": [
-      ["react-refresh/babel", { skipEnvCheck: true }]
-  ]
+      
+  ],
+  "env": {
+    "test": {
+      "plugins": ["@babel/plugin-transform-modules-commonjs"]
+    }
+  }
 }

@@ -15,6 +15,8 @@ Object.defineProperties(globalThis, {
   TextDecoder: { value: TextDecoder },
   TextEncoder: { value: TextEncoder },
   ReadableStream: { value: ReadableStream },
+  $RefreshReg$: () => {},
+  $RefreshSig$: () => () => {},
 });
 
 const { Blob, File } = require("node:buffer");
