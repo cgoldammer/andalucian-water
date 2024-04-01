@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  postgres:
+    build: 
+      context: .
+      dockerfile: Dockerfile-postgres
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_USER: postgres
+      POSTGRES_DB: water_prod
+    ports:
+      - "5433:5432"
+      
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile-nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - django
+      # - certbot
+    command: bash -c 'nginx -g "daemon off;"'
+    volumes:
+      - ./support/nginx.conf:/etc/nginx/nginx.conf
+      - ./frontend/serve_content:/etc/nginx/html
+      - ./support/logs:/etc/nginx/logs
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    links:
+      - django
+
+  # certbot:
+  #   image: certbot/certbot:latest
+
+  django:
+    depends_on:
+      - postgres
+    build:
+      context: .
+      dockerfile: Dockerfile-django
+    ports:
+      - "8002:8002"
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
