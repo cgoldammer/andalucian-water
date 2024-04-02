@@ -105,6 +105,14 @@ export const apiSlice = createApi({
       },
       providesTags: ["Daily"],
     }),
+    getReservoirsJson: builder.query({
+      query: () => {
+        return {
+          url: "/get_reservoirs_json",
+          method: "GET",
+        };
+      },
+    }),
   }),
 });
 
@@ -117,5 +125,6 @@ export const {
   useGetRainfallQuery,
   useGetReservoirStatesQuery,
   useGetDailyDataQuery,
+  useGetReservoirsJsonQuery,
   util,
 } = apiSlice;

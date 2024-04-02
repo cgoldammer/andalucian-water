@@ -18,6 +18,12 @@ rsync --exclude-from=.rsyncignore -r . bizpersonal:~/code
 
 # A hack to rename the prod file so that the URL is correct on the server.
 ssh bizpersonal 'mv code/frontend/serve_content/prod/bundle_prod.min.js code/frontend/serve_content/prod/bundle.min.js'
+ssh bizpersonal 'cd code; docker-compose build'
+ssh bizpersonal 'cd code; docker-compose up --no-start'
+
+if [[ "$1" == "-up" ]]; then
+    ssh bizpersonal 'cd code; docker-compose up'
+fi
 
 echo "Deploy completed"
 

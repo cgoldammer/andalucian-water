@@ -57,3 +57,35 @@ export const TimeOptions = {
   DAY: "day",
   YEAR: "year",
 };
+
+const fetchStub = "simple";
+
+const fetchApis = [
+  "http://127.0.0.1:8000/api/",
+  "http://127.0.0.1:8001/api/",
+  "http://127.0.0.1:8002/api/",
+  "http://52.22.180.212:8002/api/",
+  "http://52.22.180.212/api/api/",
+  "https://water.chrisgoldammer.com/api/api/",
+];
+
+const fetchTest = async (fetchApi) => {
+  const urlTest = fetchApi + fetchStub;
+  // Run a fetch request and whether it's 200
+  // The response is simply  string, not json
+  const results = {};
+  try {
+    const response = await fetch(urlTest);
+    const text = await response.text();
+    return `${urlTest}: Succeeded`;
+  } catch (error) {
+    return `${urlTest}: Failed`;
+  }
+};
+
+export const fetchTestSuite = async () => {
+  const res = await Promise.all(
+    fetchApis.map((fetchApi) => fetchTest(fetchApi))
+  );
+  return res;
+};

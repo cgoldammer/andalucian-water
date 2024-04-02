@@ -139,6 +139,10 @@ export const getReservoirStates = (db) => {
   return reservoirStates;
 };
 
+export const getReservoirs = (db) => {
+  return db.reservoir.getAll();
+};
+
 export const getDailyData = (db) => {
   const reservoirStates = getReservoirStates(db);
   const rainfalls = db.rainfall.getAll();
@@ -168,6 +172,10 @@ export const handlers = (db, defaultStub = defaultStub) => [
   }),
   http.post(defaultStub + "login", (req, res, ctx) => {
     return res(ctx.json("Basic tokenFromServer"));
+  }),
+  http.get(defaultStub + "/get_reservoirs", (req, res, ctx) => {
+    const reservoirs = getReservoirs(db);
+    return HttpResponse.json(reservoirs, { status: 201 });
   }),
   http.get(defaultStub + "/get_user", (req, res, ctx) => {
     const user = db.user.getAll()[0];

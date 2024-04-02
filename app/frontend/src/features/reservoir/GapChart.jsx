@@ -3,7 +3,7 @@ import { useGetDailyDataQuery, useGetReservoirsQuery } from "../api/apiSlice";
 import { TimeOptions } from "../../helpers/helpers";
 import { getChartData, getTableData, addShortfall } from "../../helpers/data";
 import { datesDefault } from "../../helpers/defaults";
-import { BarChart } from "@mui/x-charts/BarChart";
+import { BarChart } from "@mui/x-charts";
 
 export const GapChart = () => {
   const [rainfallExpected, setRainfallExpected] = React.useState(0.5);
@@ -98,6 +98,7 @@ export const GapChartDisplay = (props) => {
   return (
     <div>
       <h1>Shortfall</h1>
+      <div style={{ display: "none" }}>Data rows: {dataReservoirs.length} </div>
       <div style={{ display: "flex" }}>
         <div style={{ flex: 1 }}>
           <BarChart

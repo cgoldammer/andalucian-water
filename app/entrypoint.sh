@@ -5,8 +5,5 @@
 # Apply Django migrations and any other setup commands
 DJANGO_SETTINGS_MODULE=water.settings.prod python manage.py makemigrations water
 DJANGO_SETTINGS_MODULE=water.settings.prod python manage.py migrate
-DJANGO_SETTINGS_MODULE=water.settings.prod python manage.py setup_data --dev
-
-echo "hello"
-# Start the Django application
+DJANGO_SETTINGS_MODULE=water.settings.prod python manage.py setup_data --env prod --num 5000
 DJANGO_SETTINGS_MODULE=water.settings.prod python manage.py runserver 0.0.0.0:8002

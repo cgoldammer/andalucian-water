@@ -1,54 +1,21 @@
 import React, { useRef, useEffect } from "react";
-import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useGetReservoirsJsonQuery } from "./api/apiSlice";
 
-import reservoirs from "../data/reservoirs.json";
-
-// import CircularProgress from '@mui/material/CircularProgress';
-import Grid from "@mui/material/Unstable_Grid2";
-import CssBaseline from "@mui/material/CssBaseline";
-import { Route, Routes } from "react-router-dom";
-import {
-  ThemeProvider,
-  Box,
-  Container,
-  Button,
-  CardMedia,
-  FormControl,
-  Input,
-  InputLabel,
-  FormHelperText,
-  TextField,
-  CircularProgress,
-} from "@mui/material";
-import Typography from "@mui/material/Typography";
-
-import { texts, positionMidtown, positionBlock, getS3Filename } from "../texts";
-import {
-  theme,
-  Image,
-  NewButton,
-  listOfListToList,
-  getGradient,
-  NewIm,
-} from "../helpers/helpers";
-
-import { useMapEvents } from "react-leaflet";
 import { MapContainer } from "react-leaflet/MapContainer";
 import { TileLayer } from "react-leaflet/TileLayer";
 import { useMap } from "react-leaflet/hooks";
-import { Marker } from "react-leaflet/Marker";
 import { ReservoirView } from "./reservoir/ReservoirView";
 
 import { setReservoirUuidSelected } from "../reducers/uiReducer";
 
-console.log("Number of reservoirs: ", reservoirs.features.length);
+// malaga, spain
+const position = [36.7213, -4.4216];
 
-const position = [37.3891, -5.9845]; // Sevilla, Spain
-
-function MyComponent() {
-  const map = useMap();
+function MyComponent(props) {
+  const { data } = props;
   const dispatch = useDispatch();
+  const map = useMap();
 
   const callback = (reservoirUuid) => {
     console.log(setReservoirUuidSelected);
@@ -57,7 +24,7 @@ function MyComponent() {
   };
 
   useEffect(() => {
-    const geoJsonLayer = L.geoJSON(reservoirs, {
+    const geoJsonLayer = L.geoJSON(data, {
       onEachFeature: (feature, layer) => {
         const marker = L.marker(layer.getBounds().getCenter()).addTo(map);
         marker.bindPopup(feature.properties.nombre);
@@ -66,11 +33,10 @@ function MyComponent() {
         });
       },
     }).addTo(map);
-
     map.fitBounds(geoJsonLayer.getBounds());
   }, [map]);
 
-  return null;
+  return <div></div>;
 }
 
 export const MapView = () => {
@@ -78,6 +44,14 @@ export const MapView = () => {
     (state) => state.ui.reservoirUuidSelected
   );
   console.log("Selected: ", reservoirUuidSelected);
+  const { data, isLoading, error } = useGetReservoirsJsonQuery();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   var resView = <div></div>;
   if (reservoirUuidSelected) {
@@ -89,7 +63,7 @@ export const MapView = () => {
       <div>Selected: {reservoirUuidSelected || "nothing"}</div>
       <MapContainer
         center={position}
-        zoom={11}
+        zoom={9}
         scrollWheelZoom={false}
         style={{ height: "300px", width: "600px" }}
       >
@@ -97,7 +71,7 @@ export const MapView = () => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <MyComponent />
+        <MyComponent data={data} />
       </MapContainer>
       {resView}
     </div>

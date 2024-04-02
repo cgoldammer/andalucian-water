@@ -18,21 +18,21 @@ services:
       dockerfile: Dockerfile-nginx
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - django
-      # - certbot
+      - certbot
     command: bash -c 'nginx -g "daemon off;"'
     volumes:
       - ./support/nginx.conf:/etc/nginx/nginx.conf
       - ./frontend/serve_content:/etc/nginx/html
       - ./support/logs:/etc/nginx/logs
-      - ./data/certbot/conf:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
+      - ./support/sshkeys:/etc/letsencrypt
     links:
       - django
 
-  # certbot:
-  #   image: certbot/certbot:latest
+  certbot:
+    image: certbot/certbot:latest
 
   django:
     depends_on:

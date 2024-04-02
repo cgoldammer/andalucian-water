@@ -5,7 +5,12 @@ import {
   getMatchResponseSecondsSelector,
   setViewsVisible,
 } from "../reducers/settingsReducer";
-import { runMode, RUNMODE_DEV, RUNMODE_MOCK } from "../helpers/helpers";
+import {
+  runMode,
+  RUNMODE_DEV,
+  RUNMODE_MOCK,
+  fetchTestSuite,
+} from "../helpers/helpers";
 import { BorderedBox } from "../helpers/helpersUI";
 
 import {
@@ -21,6 +26,7 @@ export const AdminView = () => {
   const dispatch = useDispatch();
   const matchResponseSeconds = useSelector(getMatchResponseSecondsSelector);
   const viewsVisible = useSelector((state) => state.settings.viewsVisible);
+  const [infoState, setInfoState] = useState([""]);
   // const [reorderedViewsVisible, setReorderedViewsVisible] = useState(viewsVisible);
 
   const handleSliderChange = (event, value) => {
@@ -69,6 +75,11 @@ export const AdminView = () => {
     backgroundColor: "#f0f0f0",
   };
 
+  const handleButtonClick = async () => {
+    const res = await fetchTestSuite();
+    setInfoState(res);
+  };
+
   const reorderViews = (
     <div>
       <List
@@ -85,6 +96,14 @@ export const AdminView = () => {
           >
             <ListItemText primary={view} />
           </ListItem>
+        ))}
+      </List>
+      <Button onClick={() => handleButtonClick()}>
+        Spin off fetch requests
+      </Button>
+      <List>
+        {infoState.map((s) => (
+          <ListItem>{s}</ListItem>
         ))}
       </List>
     </div>

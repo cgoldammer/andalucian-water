@@ -6,3 +6,4 @@ backend/target
 backup/
 nosync
 .env
+support/sshkeys

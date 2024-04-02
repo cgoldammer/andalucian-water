@@ -12,6 +12,8 @@ import { LineChart } from "@mui/x-charts";
 import { FormControl, Input, InputLabel } from "@mui/material";
 import { Select, MenuItem } from "@mui/material";
 
+import { setMatchResponseSeconds } from "../../reducers/settingsReducer";
+
 export const getYAxisWater = (timeOption) => {
   const data = timeOptionData[timeOption];
   return {
@@ -160,9 +162,10 @@ export const ReservoirView = (props) => {
 
   return (
     <div>
-      <div> {reservoirUuid} </div>
       <FormControl>
-        <InputLabel htmlFor="time-option">Time Option</InputLabel>
+        <InputLabel id="choooseTime" htmlFor="time-option">
+          Time Option
+        </InputLabel>
         <Select
           id="time-option"
           value={timeOption}

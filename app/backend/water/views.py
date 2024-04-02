@@ -209,3 +209,17 @@ get_reservoir_states = createFilterRequest(
 )
 get_rainfall = createFilterRequest(data.get_rainfall_data, RainFallSerializer)
 get_wide = createFilterRequest(data.get_wide_data, data.DailyDataSerializer)
+
+
+# Provide the file in water/data/reservoirs.json as a json endpoint
+@api_view(["GET"])
+@authentication_classes([])
+@permission_classes([])
+def get_reservoirs_json(request):
+    with open("water/data/reservoirs.json") as f:
+        data = json.load(f)
+    return JsonResponse(data)
+
+
+def simple_string(request):
+    return HttpResponse("Simple string")

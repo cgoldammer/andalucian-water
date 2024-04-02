@@ -1,20 +1,21 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { isDev } from "../helpers/helpers";
 
-const viewNames = ["intro", "footer"];
+const viewNames = ["map", "intro", "footer"];
 
 const viewNamesDev = ["table", "map", "chart", "intro", "footer"];
 
 const initialState = () => {
-  const adminViews = isDev ? ["admin"] : [];
-  const otherViews = isDev ? viewNamesDev : viewNames;
+  const otherViews = viewNamesDev;
   const viewsVisible = [...otherViews];
 
-  return {
+  const vals = {
     matchResponseSeconds: 1,
     viewsVisible: viewsVisible,
-    hasAdmin: isDev,
+    hasAdmin: true,
   };
+  console.log("initialState", vals);
+  return vals;
 };
 
 export const settingsSlice = createSlice({

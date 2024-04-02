@@ -4,6 +4,7 @@ from . import views
 from django.conf.urls import include
 from rest_framework.authtoken import views as authViews
 
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/test/<str:text>/", views.test, name="test"),
@@ -19,4 +20,8 @@ urlpatterns = [
     path("api/get_rainfall/", views.get_rainfall, name="get_rainfall"),
     path("api/get_reservoirs", views.get_reservoirs, name="get_reservoirs"),
     path("api/get_wide/", views.get_wide, name="get_wide"),
+    path(
+        "api/get_reservoirs_json", views.get_reservoirs_json, name="get_reservoirs_json"
+    ),
+    path("api/simple", views.simple_string, name="simple_string"),
 ]

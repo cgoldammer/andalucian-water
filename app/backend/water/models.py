@@ -32,7 +32,8 @@ class Inquiry(UuidModel):
 class Reservoir(UuidModel):
     name = models.CharField(max_length=100)
     capacity = models.FloatField(null=False)
-
+    name_full = models.CharField(max_length=100, null=True)
+    province = models.CharField(max_length=100, null=True)
     constraints = [models.UniqueConstraint(fields=["name"], name="unique_reservoir")]
 
 
@@ -63,7 +64,7 @@ class ReservoirState(UuidModel):
 class ReservoirSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservoir
-        fields = ["uuid", "name", "capacity"]
+        fields = ["uuid", "name", "name_full", "province", "capacity"]
 
 
 class ReservoirSerializer2(serializers.ModelSerializer):
