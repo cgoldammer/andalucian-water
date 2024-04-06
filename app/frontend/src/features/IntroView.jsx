@@ -9,8 +9,8 @@ import CardContent from "@mui/material/CardContent";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 
-global.$RefreshReg$ = () => {};
-global.$RefreshSig$ = () => () => {};
+// global.$RefreshReg$ = () => {};
+// global.$RefreshSig$ = () => () => {};
 
 const FeatureCard = (props) => {
   const { name, description, linkLocation } = props;
@@ -46,7 +46,10 @@ export const IntroView = () => {
     <Grid container spacing={1}>
       <Grid xs={7}>
         <CenteredGrid xs={12}>
-          <Typography>{texts.projectDescription}</Typography>
+          <Typography role="title">{texts.projectTag}</Typography>
+        </CenteredGrid>
+        <CenteredGrid xs={12}>
+          <Typography role="description">{texts.projectDescription}</Typography>
         </CenteredGrid>
         <CenteredGrid xs={12}>
           {texts.projectFeatures.map((feature) => (

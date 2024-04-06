@@ -75,9 +75,8 @@ const setup = () => {
   };
 };
 
-test("The fragment should contain data size", () => {
-  const expected = `Data rows: ${mockValReservoirs.data.length}`;
+test("The fragment should contain a header 'Shortfall'", () => {
+  const { getByText } = setup();
 
-  const { asFragment, getByText } = setup();
-  expect(getByText(expected)).toBeInTheDocument();
+  expect(getByText("Shortfall")).toBeInTheDocument();
 });

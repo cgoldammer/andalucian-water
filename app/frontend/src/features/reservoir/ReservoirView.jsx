@@ -6,7 +6,7 @@ import Typography from "@mui/material/Typography";
 import { useGetDailyDataQuery } from "../api/apiSlice";
 import { getChartData, getTableData } from "../../helpers/data";
 import { axisClasses } from "@mui/x-charts/ChartsAxis";
-
+import { texts } from "../../texts";
 import PropTypes from "prop-types";
 import { LineChart } from "@mui/x-charts";
 import { FormControl, Input, InputLabel } from "@mui/material";
@@ -156,7 +156,7 @@ export const ReservoirView = (props) => {
   ) : (
     <FormControl>
       <InputLabel id="choooseTime" htmlFor="time-option">
-        Time Option
+        <span role="label">{texts.timeOption}</span>
       </InputLabel>
       <Select
         id="time-option"

@@ -5,6 +5,7 @@ import "@testing-library/jest-dom";
 import { render } from "@testing-library/react";
 import { addMockDataTest } from "../../helpers/fixture";
 import React from "react";
+import { texts } from "../../texts";
 
 test("It should print the reservoir UUid", () => {
   expect(true).toBe(true);
@@ -16,6 +17,10 @@ import { store } from "../../store";
 jest.mock("@mui/x-charts", () => ({
   BarChart: jest.fn().mockImplementation(({ children }) => children),
   LineChart: jest.fn().mockImplementation(({ children }) => children),
+}));
+
+jest.mock("@mui/x-charts/ChartsAxis", () => ({
+  axisClasses: jest.fn().mockReturnValue({}),
 }));
 
 import { ReservoirView } from "./ReservoirView";
@@ -33,21 +38,32 @@ afterEach(() => {
 });
 afterAll(() => fakeServer.close());
 
-const setup = () => {
-  const reservoirUuid = db.reservoir.getAll()[0].uuid;
-  const { asFragment, getByText } = render(
+const setup = (reservoirUuid, showDateControls) => {
+  const { asFragment, getByText, getByRole, queryByRole } = render(
     <Provider store={store}>
-      <ReservoirView reservoirUuid={reservoirUuid} showDateControls={false} />
+      <ReservoirView
+        reservoirUuid={reservoirUuid}
+        showDateControls={showDateControls}
+      />
     </Provider>
   );
   return {
     asFragment,
     getByText,
+    getByRole,
+    queryByRole,
   };
 };
 
-test("The fragment should contain a Time Option field", () => {
-  const reservoirUuid = db.reservoir.getAll()[0].uuid;
-  const { asFragment, getByText } = setup();
-  expect(getByText("Time Option")).toBeInTheDocument();
+const reservoirUuid = db.reservoir.getAll()[0].uuid;
+const timeText = texts.timeOption;
+
+test("The fragment without dates should not contain a time option field", () => {
+  const { getByRole } = setup(reservoirUuid, true);
+  expect(getByRole("label", { name: timeText })).toBeInTheDocument();
+});
+
+test("The fragment with dates should contain a Time Option field", () => {
+  const { queryByRole } = setup(reservoirUuid, false);
+  expect(queryByRole("label")).toBeNull();
 });

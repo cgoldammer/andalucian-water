@@ -32,6 +32,7 @@ export const texts = {
   projectFeatures: projectFeatures,
   featuresComing: featuresComing,
   featuresComingHeader: "Features coming up:",
+  timeOption: "Time Option",
 };
 
 export const positionAndalucia = [36.7213, -4.4214];

@@ -6,8 +6,8 @@ import { createRoot } from "react-dom/client";
 
 import { BrowserRouter } from "react-router-dom";
 
-global.$RefreshReg$ = () => {};
-global.$RefreshSig$ = () => () => {};
+// global.$RefreshReg$ = () => {};
+// global.$RefreshSig$ = () => () => {};
 
 const app = (
   <React.StrictMode>
