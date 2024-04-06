@@ -2,35 +2,17 @@ import React from "react";
 
 import Grid from "@mui/material/Unstable_Grid2";
 import CssBaseline from "@mui/material/CssBaseline";
-import { Route, Routes, useParams } from "react-router-dom";
-import {
-  ThemeProvider,
-  Box,
-  Container,
-  Button,
-  CardMedia,
-  FormControl,
-  Input,
-  InputLabel,
-  FormHelperText,
-  TextField,
-} from "@mui/material";
-import Typography from "@mui/material/Typography";
+import { Route, Routes } from "react-router-dom";
+import { ThemeProvider, Container } from "@mui/material";
 
 import { FooterView } from "./features/FooterView";
-import { texts } from "./texts";
-import { theme, Image, NewButton } from "./helpers/helpersUI";
-import { isDev } from "./helpers/helpers";
+import { theme } from "./helpers/helpersUI";
 import { TopMenu } from "./features/MenuView";
 import { IntroView } from "./features/IntroView";
 import { AboutView } from "./features/AboutView";
 import { AdminView } from "./features/AdminView";
-import { useDispatch, useSelector } from "react-redux";
-import { useGetLoginTestQuery } from "./features/api/apiSlice";
-import { UserView, LoginView } from "./features/LoginView";
+import { useSelector } from "react-redux";
 import { MapView } from "./features/MapView";
-import { setToken } from "./reducers/userReducer";
-import { ReservoirsView } from "./features/reservoir/ReservoirsView";
 import { GapChart } from "./features/reservoir/GapChart";
 import { GapView } from "./features/reservoir/GapView";
 
@@ -80,28 +62,10 @@ const sectionsDiv = (settings) => {
   );
 };
 
-const MagicLogin = () => {
-  const { token } = useParams();
-  const dispatch = useDispatch();
-
-  // Dispatch the setToken action to update the token state in Redux store
-  dispatch(setToken(token));
-  console.log("Set magic token: ", token);
-
-  return <MapView />;
-};
-
 /* The main app, which pulls in all the other windows. */
 export function App() {
-  const dispatch = useDispatch();
   const settings = useSelector((state) => state.settings);
-  console.log("Settings: ", settings);
   const sectionsDivFull = sectionsDiv(settings);
-  const token = useSelector((state) => state.userData.token);
-  // const { data, error, isLoading } = useGetLoginTestQuery({
-  //   skip: token != undefined,
-  // });
-  // console.log("Login data: ", data);
 
   return (
     <ThemeProvider theme={theme}>
@@ -118,8 +82,6 @@ export function App() {
                 <Route path="/reservoirs" element={<MapView />} />
                 <Route path="/shortfall" element={<GapView />} />
                 <Route path="/about" element={<AboutView />} />
-                {/* <Route path="/profile" element={<UserView />} /> */}
-                <Route path="/register" element={<LoginView />} />
               </Routes>
             </Grid>
           </Grid>

@@ -1,12 +1,14 @@
 import React from "react";
 import { useGetDailyDataQuery, useGetReservoirsQuery } from "../api/apiSlice";
 import { TimeOptions } from "../../helpers/helpers";
-import { getChartData, getTableData, addShortfall } from "../../helpers/data";
+import { getTableData, addShortfall } from "../../helpers/data";
 import { datesDefault } from "../../helpers/defaults";
 import { BarChart } from "@mui/x-charts";
 import Slider from "@mui/material/Slider";
 import Grid from "@mui/material/Unstable_Grid2";
 import Typography from "@mui/material/Typography";
+
+import PropTypes from "prop-types";
 
 export const GapChart = () => {
   const [rainfallExpected, setRainfallExpected] = React.useState(0.5);
@@ -62,7 +64,7 @@ export const GapChartDisplay = (props) => {
     timeOption: timeOption,
     isFirstOfYear: true,
   };
-  const { data, isLoading, error } = useGetDailyDataQuery(inputs);
+  const { data, isLoading } = useGetDailyDataQuery(inputs);
 
   if (
     isLoadingReservoirs ||
@@ -74,21 +76,12 @@ export const GapChartDisplay = (props) => {
     return <div>Gapchart Loading...</div>;
   }
 
-  const { dataCleaned, columns } = getTableData(data, timeOption);
+  const { dataCleaned } = getTableData(data, timeOption);
 
   const dataCleanedLatestYear = addShortfall(
     dataCleaned,
     rainfallExpected
   ).filter((row) => new Date(row.date).getFullYear() == 2023);
-
-  /* Create bar chart with this data */
-  const seriesReservoir = dataCleanedLatestYear.map((row) => {
-    return {
-      data: [row.shortfall],
-      stack: "Reservoir",
-      label: row.reservoirName,
-    };
-  });
 
   const dataByProvince = dataCleanedLatestYear.reduce((result, row) => {
     const existingProvince = result.find(
@@ -146,4 +139,8 @@ export const GapChartDisplay = (props) => {
       </Grid>
     </Grid>
   );
+};
+
+GapChartDisplay.propTypes = {
+  rainfallExpected: PropTypes.number.isRequired,
 };

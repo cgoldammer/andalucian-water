@@ -5,9 +5,9 @@ import { TimeOptions } from "../../helpers/helpers";
 import Typography from "@mui/material/Typography";
 import { useGetDailyDataQuery } from "../api/apiSlice";
 import { getChartData, getTableData } from "../../helpers/data";
-import { DataGrid } from "@mui/x-data-grid";
 import { axisClasses } from "@mui/x-charts/ChartsAxis";
 
+import PropTypes from "prop-types";
 import { LineChart } from "@mui/x-charts";
 import { FormControl, Input, InputLabel } from "@mui/material";
 import { Select, MenuItem } from "@mui/material";
@@ -67,7 +67,7 @@ export const CreateGraph = (inputs) => {
     return <div>Too many data points for yearly view</div>;
   }
 
-  const { dataCleaned, columns } = getTableData(data, timeOption);
+  const { dataCleaned } = getTableData(data, timeOption);
   const { series, xvalues } = getChartData(dataCleaned, timeOption);
 
   const reservoirName = dataCleaned[0].reservoirName;
@@ -204,4 +204,9 @@ export const ReservoirView = (props) => {
       {stateView}
     </Grid>
   );
+};
+
+ReservoirView.propTypes = {
+  reservoirUuid: PropTypes.string.isRequired,
+  showDateControls: PropTypes.bool.isRequired,
 };

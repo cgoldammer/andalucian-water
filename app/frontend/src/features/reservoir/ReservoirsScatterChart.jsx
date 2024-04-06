@@ -5,8 +5,9 @@ import { TimeOptions } from "../../helpers/helpers";
 import React from "react";
 import { getTableData } from "../../helpers/data";
 import Grid from "@mui/material/Unstable_Grid2";
-import { timeOptionDefault, datesDefault } from "../../helpers/defaults";
+import { datesDefault } from "../../helpers/defaults";
 import { axisClasses } from "@mui/x-charts/ChartsAxis";
+import PropTypes from "prop-types";
 
 const valueFormatter = (value) => `${(value * 100).toFixed(0)}%`;
 
@@ -23,7 +24,7 @@ export const ReservoirsScatterChart = () => {
     timeOption: timeOption,
     isFirstOfYear: true,
   };
-  const { data, isLoading, error } = useGetDailyDataQuery(inputs);
+  const { data, isLoading } = useGetDailyDataQuery(inputs);
 
   if (
     isLoadingReservoirs ||
@@ -35,7 +36,7 @@ export const ReservoirsScatterChart = () => {
     return <div>Loading...</div>;
   }
 
-  const { dataCleaned, columns } = getTableData(data, timeOption);
+  const { dataCleaned } = getTableData(data, timeOption);
   const maxRelRain = 1.2;
   const minRelRain = 0.3;
 
@@ -95,6 +96,11 @@ export const ReservoirsScatterChart = () => {
         {row.name} {row.date}: {xFormatted} {yFormatted}
       </div>
     );
+  };
+
+  CustomItemTooltipContent.propTypes = {
+    itemData: PropTypes.object.isRequired,
+    series: PropTypes.object.isRequired,
   };
 
   const chart = (

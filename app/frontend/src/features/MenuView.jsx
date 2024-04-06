@@ -6,7 +6,6 @@ import Typography from "@mui/material/Typography";
 import MenuItem from "@mui/material/MenuItem";
 import { texts } from "../texts";
 import { Link as RouterLink } from "react-router-dom";
-import { hasUserTokenSelector } from "../store";
 
 const pagesData = [
   { name: "Home", url: "/" },
@@ -17,23 +16,12 @@ const pagesData = [
 const pagesDataNoUser = [];
 
 export function TopMenu() {
-  const [setAnchorElUser] = React.useState(null);
-
   const pagesDataAll = pagesData.concat(pagesDataNoUser);
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
 
   const getPagesItem = (pageData) => {
     const { name, url } = pageData;
     var item = (
-      <MenuItem
-        key={name}
-        onClick={handleCloseUserMenu}
-        component={RouterLink}
-        to={url}
-      >
+      <MenuItem key={name} component={RouterLink} to={url}>
         <Typography textAlign="center">{name}</Typography>
       </MenuItem>
     );

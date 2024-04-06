@@ -7,6 +7,7 @@ import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
 import CardContent from "@mui/material/CardContent";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 
 global.$RefreshReg$ = () => {};
 global.$RefreshSig$ = () => () => {};
@@ -14,7 +15,6 @@ global.$RefreshSig$ = () => () => {};
 const FeatureCard = (props) => {
   const { name, description, linkLocation } = props;
   const navigate = useNavigate();
-  // One react-router-dom to go to the link
   const onClick = () => {
     navigate(linkLocation);
   };
@@ -35,12 +35,6 @@ const FeatureCard = (props) => {
   );
 };
 
-import PropTypes from "prop-types";
-
-IntroView.propTypes = {
-  // Add prop types here
-};
-
 FeatureCard.propTypes = {
   name: PropTypes.string.isRequired,
   description: PropTypes.string.isRequired,
@@ -55,18 +49,10 @@ export const IntroView = () => {
           <Typography>{texts.projectDescription}</Typography>
         </CenteredGrid>
         <CenteredGrid xs={12}>
-          {texts.projectFeatures.map((feature) => FeatureCard(feature))}
+          {texts.projectFeatures.map((feature) => (
+            <FeatureCard key={feature.name} {...feature} />
+          ))}
         </CenteredGrid>
-        {/* <Grid xs={12}>
-          <Typography>{texts.featuresComingHeader}</Typography>
-        </Grid> */}
-        {/* <Grid xs={12}>
-          <ul>
-            {texts.featuresComing.map((feature, index) => (
-              <li key={index}>{feature}</li>
-            ))}
-          </ul>
-        </Grid> */}
       </Grid>
       <Grid xs={5}>
         <Image

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useGetReservoirsJsonQuery } from "./api/apiSlice";
 import Grid from "@mui/material/Unstable_Grid2";
@@ -13,29 +13,30 @@ import { setReservoirUuidSelected } from "../reducers/uiReducer";
 // malaga, spain
 const position = [36.7213, -4.4216];
 
+import PropTypes from "prop-types";
+
+MyComponent.propTypes = {
+  data: PropTypes.array.isRequired,
+};
+
 function MyComponent(props) {
   const { data } = props;
   const dispatch = useDispatch();
   const map = useMap();
-
-  const callback = (reservoirUuid) => {
-    console.log(setReservoirUuidSelected);
-    console.log("Callback: ", reservoirUuid);
-    dispatch(setReservoirUuidSelected(reservoirUuid));
-  };
-
   useEffect(() => {
+    // eslint-disable-next-line no-undef
     const geoJsonLayer = L.geoJSON(data, {
       onEachFeature: (feature, layer) => {
+        // eslint-disable-next-line no-undef
         const marker = L.marker(layer.getBounds().getCenter()).addTo(map);
         marker.bindPopup(feature.properties.nombre);
         marker.on("click", () => {
-          callback(feature.properties.reservoir_uuid);
+          dispatch(setReservoirUuidSelected(feature.properties.reservoir_uuid));
         });
       },
     }).addTo(map);
     map.fitBounds(geoJsonLayer.getBounds());
-  }, [map]);
+  }, [map, data, dispatch]);
 
   return <div></div>;
 }
@@ -44,7 +45,6 @@ export const MapView = () => {
   const reservoirUuidSelected = useSelector(
     (state) => state.ui.reservoirUuidSelected
   );
-  console.log("Selected: ", reservoirUuidSelected);
   const { data, isLoading, error } = useGetReservoirsJsonQuery();
 
   if (isLoading) {
