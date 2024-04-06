@@ -1,18 +1,16 @@
 import React from "react";
-
 import { timeOptionDefault, datesDefault } from "../../helpers/defaults";
-
+import Grid from "@mui/material/Unstable_Grid2";
 import { TimeOptions } from "../../helpers/helpers";
-
+import Typography from "@mui/material/Typography";
 import { useGetDailyDataQuery } from "../api/apiSlice";
 import { getChartData, getTableData } from "../../helpers/data";
 import { DataGrid } from "@mui/x-data-grid";
+import { axisClasses } from "@mui/x-charts/ChartsAxis";
 
 import { LineChart } from "@mui/x-charts";
 import { FormControl, Input, InputLabel } from "@mui/material";
 import { Select, MenuItem } from "@mui/material";
-
-import { setMatchResponseSeconds } from "../../reducers/settingsReducer";
 
 export const getYAxisWater = (timeOption) => {
   const data = timeOptionData[timeOption];
@@ -20,7 +18,7 @@ export const getYAxisWater = (timeOption) => {
     id: data.id,
     scaleType: "linear",
     label: data.label,
-    valueFormatter: (value) => value.toFixed(1),
+    valueFormatter: (value) => `${(value * 100).toFixed(0)}%`,
   };
 };
 
@@ -31,7 +29,7 @@ export const timeOptionData = {
   },
   [TimeOptions.YEAR]: {
     id: "rain",
-    label: "Rainfall Cumulative",
+    label: "Rainfall Cumulative (% of historical)",
   },
 };
 
@@ -47,8 +45,8 @@ export const CreateGraph = (inputs) => {
   const yAxisFill = {
     id: "fill",
     scaleType: "linear",
-    label: "Percentage",
-    valueFormatter: (value) => `${(value * 100).toFixed(1)}%`,
+    label: "Fill Rate (%)",
+    valueFormatter: (value) => `${(value * 100).toFixed(0)}%`,
   };
 
   const yAxis = [yAxisFill, getYAxisWater(timeOption)];
@@ -72,6 +70,8 @@ export const CreateGraph = (inputs) => {
   const { dataCleaned, columns } = getTableData(data, timeOption);
   const { series, xvalues } = getChartData(dataCleaned, timeOption);
 
+  const reservoirName = dataCleaned[0].reservoirName;
+
   const xAxis = [
     {
       id: "years",
@@ -82,24 +82,36 @@ export const CreateGraph = (inputs) => {
   ];
 
   return (
-    <div>
-      <h1>Reservoir State</h1>
-      <LineChart
-        xAxis={xAxis}
-        yAxis={yAxis}
-        series={series}
-        leftAxis="fill"
-        rightAxis="rain"
-        width={800}
-        height={600}
-      />
-      <DataGrid rows={dataCleaned} columns={columns} />
-    </div>
+    <Grid container justifyContent="center" alignItems="center" xs={12}>
+      <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
+        <Typography variant="h4">Yearly view for: {reservoirName}</Typography>
+      </Grid>
+      <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
+        <LineChart
+          xAxis={xAxis}
+          yAxis={yAxis}
+          series={series}
+          leftAxis="fill"
+          rightAxis="rain"
+          width={600}
+          height={400}
+          sx={{
+            [`.${axisClasses.left} .${axisClasses.label}`]: {
+              transform: "translate(-25px, 0)",
+            },
+            [`.${axisClasses.right} .${axisClasses.label}`]: {
+              transform: "translate(30px, 0)",
+            },
+          }}
+        />
+      </Grid>
+      {/* <DataGrid rows={dataCleaned} columns={columns} /> */}
+    </Grid>
   );
 };
 
 export const ReservoirView = (props) => {
-  const { reservoirUuid } = props;
+  const { reservoirUuid, showDateControls } = props;
   const [timeOption, setTimeOption] = React.useState(timeOptionDefault);
   const [startDate, setStartDate] = React.useState(
     datesDefault[timeOption].start
@@ -131,8 +143,33 @@ export const ReservoirView = (props) => {
   const inputsValid = inputs.reservoirUuids != undefined;
   var stateView = <div>Loading...</div>;
   if (inputsValid) {
-    stateView = <CreateGraph {...inputs} timeOption={timeOption} />;
+    stateView = (
+      <CreateGraph
+        {...inputs}
+        timeOption={timeOption}
+        showDateControls={false}
+      />
+    );
   }
+
+  const pickTimeOption = !showDateControls ? (
+    <div />
+  ) : (
+    <FormControl>
+      <InputLabel id="choooseTime" htmlFor="time-option">
+        Time Option
+      </InputLabel>
+      <Select
+        id="time-option"
+        value={timeOption}
+        onChange={handleTimeOptionChange}
+        input={<Input />}
+      >
+        <MenuItem value={TimeOptions.DAY}>Day</MenuItem>
+        <MenuItem value={TimeOptions.YEAR}>Year</MenuItem>
+      </Select>
+    </FormControl>
+  );
 
   const dateControls =
     timeOption == TimeOptions.YEAR ? (
@@ -161,24 +198,10 @@ export const ReservoirView = (props) => {
     );
 
   return (
-    <div>
-      <FormControl>
-        <InputLabel id="choooseTime" htmlFor="time-option">
-          Time Option
-        </InputLabel>
-        <Select
-          id="time-option"
-          value={timeOption}
-          onChange={handleTimeOptionChange}
-          input={<Input />}
-        >
-          <MenuItem value={TimeOptions.DAY}>Day</MenuItem>
-          <MenuItem value={TimeOptions.YEAR}>Year</MenuItem>
-        </Select>
-      </FormControl>
+    <Grid container justifyContent="center" alignItems="center" xs={12}>
+      {pickTimeOption}
       {dateControls}
-
       {stateView}
-    </div>
+    </Grid>
   );
 };

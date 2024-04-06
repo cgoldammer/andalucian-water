@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useGetReservoirsJsonQuery } from "./api/apiSlice";
+import Grid from "@mui/material/Unstable_Grid2";
 
 import { MapContainer } from "react-leaflet/MapContainer";
 import { TileLayer } from "react-leaflet/TileLayer";
@@ -59,8 +60,13 @@ export const MapView = () => {
   }
 
   return (
-    <div style={{ position: "relative" }}>
-      <div>Selected: {reservoirUuidSelected || "nothing"}</div>
+    <Grid
+      container
+      justifyContent="center"
+      alignItems="center"
+      xs={12}
+      style={{ margin: "20px" }}
+    >
       <MapContainer
         center={position}
         zoom={9}
@@ -74,6 +80,6 @@ export const MapView = () => {
         <MyComponent data={data} />
       </MapContainer>
       {resView}
-    </div>
+    </Grid>
   );
 };

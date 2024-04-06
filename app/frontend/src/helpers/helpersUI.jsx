@@ -3,6 +3,26 @@ import { styled } from "@mui/system";
 import { createTheme } from "@mui/material";
 import { responsiveFontSizes } from "@mui/material/styles";
 import { Box, Button } from "@mui/material";
+import Grid from "@mui/material/Unstable_Grid2";
+import React from "react";
+
+export const CenteredGrid = ({
+  children,
+  justifyContent = "center",
+  alignItems = "center",
+  ...otherProps
+}) => {
+  return (
+    <Grid
+      container
+      justifyContent={justifyContent}
+      alignItems={alignItems}
+      {...otherProps}
+    >
+      {children}
+    </Grid>
+  );
+};
 
 export const NewIm = styled(ImageOverlay)({
   opacity: 0.1,
@@ -34,10 +54,13 @@ export const theme = createTheme({
   typography: {
     fontFamily: [font].join(","),
     h1: {
-      fontSize: "3rem",
+      fontSize: "2rem",
     },
     h2: {
-      fontSize: "2.5rem",
+      fontSize: "1.5rem",
+    },
+    h3: {
+      fontSize: "1.25rem",
     },
   },
   components: {

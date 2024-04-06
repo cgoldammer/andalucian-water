@@ -23,7 +23,7 @@ import { theme, Image, NewButton } from "./helpers/helpersUI";
 import { isDev } from "./helpers/helpers";
 import { TopMenu } from "./features/MenuView";
 import { IntroView } from "./features/IntroView";
-
+import { AboutView } from "./features/AboutView";
 import { AdminView } from "./features/AdminView";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetLoginTestQuery } from "./features/api/apiSlice";
@@ -32,6 +32,7 @@ import { MapView } from "./features/MapView";
 import { setToken } from "./reducers/userReducer";
 import { ReservoirsView } from "./features/reservoir/ReservoirsView";
 import { GapChart } from "./features/reservoir/GapChart";
+import { GapView } from "./features/reservoir/GapView";
 
 const EmptyView = () => {
   return <div />;
@@ -40,6 +41,7 @@ const EmptyView = () => {
 const sections = (settings) => {
   const views = {
     admin: settings.hasAdmin ? AdminView : EmptyView,
+    scatter: GapView,
     map: MapView,
     table: GapChart,
     intro: IntroView,
@@ -113,8 +115,9 @@ export function App() {
               <Routes>
                 {/* <Route path="/" element={<IntroView />} /> */}
                 <Route path="/" element={sectionsDivFull} />
-                <Route path="/explore" element={<MapView />} />
-                <Route path="/explore/:token" element={<MagicLogin />} />
+                <Route path="/reservoirs" element={<MapView />} />
+                <Route path="/shortfall" element={<GapView />} />
+                <Route path="/about" element={<AboutView />} />
                 {/* <Route path="/profile" element={<UserView />} /> */}
                 <Route path="/register" element={<LoginView />} />
               </Routes>

@@ -4,6 +4,9 @@ import { TimeOptions } from "../../helpers/helpers";
 import { getChartData, getTableData, addShortfall } from "../../helpers/data";
 import { datesDefault } from "../../helpers/defaults";
 import { BarChart } from "@mui/x-charts";
+import Slider from "@mui/material/Slider";
+import Grid from "@mui/material/Unstable_Grid2";
+import Typography from "@mui/material/Typography";
 
 export const GapChart = () => {
   const [rainfallExpected, setRainfallExpected] = React.useState(0.5);
@@ -11,20 +14,35 @@ export const GapChart = () => {
     setRainfallExpected(event.target.value);
   };
 
+  const displayAsPercent = (val) => {
+    return `${(val * 100).toFixed(0)}%`;
+  };
+
   return (
-    <div>
-      <h1>Gap Chart</h1>
-      <input
-        type="range"
-        min={0}
-        max={1.5}
-        step={0.01}
-        value={rainfallExpected}
-        onChange={handleRainfallExpectedChange}
-      />
-      <div>{rainfallExpected}</div>
-      <GapChartDisplay rainfallExpected={rainfallExpected} />
-    </div>
+    <Grid container justifyContent="center" alignItems="center" xs={12}>
+      <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
+        <Typography variant="h4">Rain (% of historical)</Typography>
+      </Grid>
+      <Grid display="flex" justifyContent="center" alignItems="center" xs={6}>
+        <Slider
+          type="range"
+          min={0.2}
+          max={0.8}
+          step={0.05}
+          marks
+          value={rainfallExpected}
+          onChange={handleRainfallExpectedChange}
+        />
+      </Grid>
+      <Grid display="flex" justifyContent="center" alignItems="center" xs={6}>
+        <Typography variant="h2">
+          {displayAsPercent(rainfallExpected)}
+        </Typography>
+      </Grid>
+      <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
+        <GapChartDisplay rainfallExpected={rainfallExpected} />
+      </Grid>
+    </Grid>
   );
 };
 
@@ -96,20 +114,26 @@ export const GapChartDisplay = (props) => {
   });
 
   return (
-    <div>
-      <h1>Shortfall</h1>
-      <div style={{ display: "none" }}>Data rows: {dataReservoirs.length} </div>
-      <div style={{ display: "flex" }}>
-        <div style={{ flex: 1 }}>
-          <BarChart
-            series={seriesProvince}
-            width={300}
-            height={300}
-            xAxis={[{ scaleType: "band", data: ["Province"] }]}
-            slotProps={{ legend: { hidden: true } }}
-          />
-        </div>
-        <div style={{ flex: 1 }}>
+    <Grid container justifyContent="center" alignItems="center" xs={12}>
+      <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
+        <Typography variant="h4">Shortfall</Typography>
+      </Grid>
+      <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
+        <Typography>
+          Given the relative rainfall, we can predict the shortfall, which is
+          the expected reduction in overall reservoir levels (all in HM3).
+        </Typography>
+      </Grid>
+
+      <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
+        <BarChart
+          series={seriesProvince}
+          width={300}
+          height={300}
+          xAxis={[{ scaleType: "band", data: ["overall"] }]}
+          slotProps={{ legend: { hidden: true } }}
+        />
+        {/* <div style={{ flex: 1 }}>
           <BarChart
             series={seriesReservoir}
             width={300}
@@ -118,8 +142,8 @@ export const GapChartDisplay = (props) => {
             xAxis={[{ scaleType: "band", data: ["Reservoir"] }]}
             slotProps={{ legend: { hidden: true } }}
           />
-        </div>
-      </div>
-    </div>
+        </div> */}
+      </Grid>
+    </Grid>
   );
 };

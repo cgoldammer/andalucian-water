@@ -103,7 +103,7 @@ export const AdminView = () => {
       </Button>
       <List>
         {infoState.map((s) => (
-          <ListItem>{s}</ListItem>
+          <ListItem key={s}>{s}</ListItem>
         ))}
       </List>
     </div>
