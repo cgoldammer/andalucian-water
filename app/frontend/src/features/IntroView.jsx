@@ -41,31 +41,36 @@ FeatureCard.propTypes = {
   linkLocation: PropTypes.string.isRequired,
 };
 
-export const IntroView = () => {
-  return (
-    <Grid container spacing={1}>
-      <Grid xs={7}>
-        <CenteredGrid xs={12}>
-          <Typography role="title">{texts.projectTag}</Typography>
-        </CenteredGrid>
-        <CenteredGrid xs={12}>
-          <Typography role="description">{texts.projectDescription}</Typography>
-        </CenteredGrid>
-        <CenteredGrid xs={12}>
-          {texts.projectFeatures.map((feature) => (
-            <FeatureCard key={feature.name} {...feature} />
-          ))}
-        </CenteredGrid>
-      </Grid>
-      <Grid xs={5}>
-        <Image
-          component="img"
-          alt="Something"
-          src={
-            "https://streetsinformed-public.s3.amazonaws.com/images/sectionHome.jpeg"
-          }
-        />
-      </Grid>
+export const IntroView = () => (
+  <Grid container spacing={1}>
+    <Grid xs={6}>
+      <CenteredGrid xs={12}>
+        <Typography variant="h1" role="title" style={{ textAlign: "justify" }}>
+          {texts.projectTag}
+        </Typography>
+      </CenteredGrid>
+      <CenteredGrid xs={12}>
+        <Typography
+          role="description"
+          style={{ textAlign: "justify", padding: "20px" }}
+        >
+          {texts.projectDescription}
+        </Typography>
+      </CenteredGrid>
     </Grid>
-  );
-};
+    <Grid xs={5}>
+      <Image
+        component="img"
+        alt="Something"
+        src={"https://andalucianwater.s3.amazonaws.com/images/reservoir.jpg"}
+      />
+    </Grid>
+    <Grid xs={12}>
+      <CenteredGrid xs={12}>
+        {texts.projectFeatures.map((feature) => (
+          <FeatureCard key={feature.name} {...feature} />
+        ))}
+      </CenteredGrid>
+    </Grid>
+  </Grid>
+);

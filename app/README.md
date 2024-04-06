@@ -18,7 +18,7 @@ The tricky thing is that I'm hosting this on `water.chrisgoldammer.com`, so how 
 1. Create a `certbot` service
 2. Create a `nginx` service:
   - The service uses the `/var/www/certbot` folder to write the certbot challenge
-  - ssl secrets are stored like this: `/etc/nginx/ssl/live/cocktails.chrisgoldammer.com/fullchain.pem`
+  - ssl secrets are stored like this: `/etc/nginx/ssl/live/water.chrisgoldammer.com/fullchain.pem`
 3. Use volumes to ensure that both the challenge and secret location are synced between certbot and nginx.
 4. If I run the `certbot` command from the `certbot` instance, roughly this happens:
   - The secret and the challenge are stored on their certbot locations

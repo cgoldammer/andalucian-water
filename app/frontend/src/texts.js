@@ -27,7 +27,7 @@ const featuresComing = [
 
 export const texts = {
   projectName: "AndaluciaWater",
-  projectTag: "Andalucian Water",
+  projectTag: "Water in Andalucia",
   projectDescription: projectDescription,
   projectFeatures: projectFeatures,
   featuresComing: featuresComing,
