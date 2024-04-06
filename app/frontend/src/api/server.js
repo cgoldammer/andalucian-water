@@ -183,7 +183,6 @@ export const handlers = (db, defaultStub = defaultStub) => [
   }),
   http.get(defaultStub + "/get_reservoir_states", (req, res, ctx) => {
     const matchResponseSeconds = store.getState().settings.matchResponseSeconds;
-    console.log("Responding in " + matchResponseSeconds + " seconds");
     const reservoirStates = getReservoirStates(db);
     return HttpResponse.json(
       reservoirStates,
@@ -192,9 +191,8 @@ export const handlers = (db, defaultStub = defaultStub) => [
     );
   }),
   http.get(defaultStub + "/get_wide", (req, res, ctx) => {
-    console.log("Running get_wide");
     const matchResponseSeconds = store.getState().settings.matchResponseSeconds;
-    console.log("Responding in " + matchResponseSeconds + " seconds");
+
     const dailyData = getDailyData(db);
     return HttpResponse.json(
       dailyData,
@@ -214,5 +212,9 @@ export const worker = isJestWorker()
 
 if (!isJestWorker()) {
   addMockData(getDB());
-  worker.start();
+  if (process.env.RUNMODE != "prod") {
+    worker.start({
+      onUnhandledRequest: "bypass",
+    });
+  }
 }

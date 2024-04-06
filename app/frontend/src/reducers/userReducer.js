@@ -10,7 +10,6 @@ export const userSlice = createSlice({
       const localStorageKey = "userToken";
       const token = actions.payload;
       state.token = token;
-      console.log("SETTING localstorage:" + token);
       if (token != undefined) {
         localStorage.setItem(localStorageKey, token);
       } else {

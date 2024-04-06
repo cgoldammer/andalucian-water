@@ -54,8 +54,6 @@ export const GapChartDisplay = (props) => {
     useGetReservoirsQuery();
   const reservoirUuids =
     dataReservoirs === undefined ? [] : dataReservoirs.map((row) => row.uuid);
-
-  console.log("reservoirUuids", reservoirUuids);
   const timeOption = TimeOptions.YEAR;
   const inputs = {
     reservoirUuids: reservoirUuids,
@@ -64,7 +62,9 @@ export const GapChartDisplay = (props) => {
     timeOption: timeOption,
     isFirstOfYear: true,
   };
-  const { data, isLoading } = useGetDailyDataQuery(inputs);
+  const { data, isLoading } = useGetDailyDataQuery(inputs, {
+    skip: reservoirUuids.length == 0,
+  });
 
   if (
     isLoadingReservoirs ||

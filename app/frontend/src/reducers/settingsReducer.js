@@ -13,7 +13,6 @@ const initialState = () => {
     viewsVisible: viewsVisible,
     hasAdmin: isDev,
   };
-  console.log("initialState", vals);
   return vals;
 };
 

@@ -8,7 +8,6 @@
  * you don't want to deal with this.
  */
 
-console.log("SETUP");
 const { TextDecoder, TextEncoder, ReadableStream } = require("node:util");
 
 Object.defineProperties(globalThis, {

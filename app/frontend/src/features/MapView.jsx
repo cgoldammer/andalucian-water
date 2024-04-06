@@ -15,10 +15,6 @@ const position = [36.7213, -4.4216];
 
 import PropTypes from "prop-types";
 
-MyComponent.propTypes = {
-  data: PropTypes.array.isRequired,
-};
-
 function MyComponent(props) {
   const { data } = props;
   const dispatch = useDispatch();
@@ -41,6 +37,10 @@ function MyComponent(props) {
   return <div></div>;
 }
 
+MyComponent.propTypes = {
+  data: PropTypes.object.isRequired,
+};
+
 export const MapView = () => {
   const reservoirUuidSelected = useSelector(
     (state) => state.ui.reservoirUuidSelected
@@ -56,7 +56,12 @@ export const MapView = () => {
 
   var resView = <div></div>;
   if (reservoirUuidSelected) {
-    resView = <ReservoirView reservoirUuid={reservoirUuidSelected} />;
+    resView = (
+      <ReservoirView
+        reservoirUuid={reservoirUuidSelected}
+        showDateControls={false}
+      />
+    );
   }
 
   return (

@@ -105,7 +105,6 @@ export const CreateGraph = (inputs) => {
           }}
         />
       </Grid>
-      {/* <DataGrid rows={dataCleaned} columns={columns} /> */}
     </Grid>
   );
 };

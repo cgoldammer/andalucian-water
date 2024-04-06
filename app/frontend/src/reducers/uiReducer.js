@@ -11,7 +11,6 @@ export const uiSlice = createSlice({
   initialState: initialState(),
   reducers: {
     setReservoirUuidSelected: (state, actions) => {
-      console.log("Setting reservoirUuidSelected: ", actions.payload);
       state.reservoirUuidSelected = actions.payload;
     },
   },

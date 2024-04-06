@@ -19,14 +19,6 @@ const app = (
   </React.StrictMode>
 );
 
-if (process.env.RUNMODE != "prod") {
-  const apiServer = await import("./api/server");
-  const worker = apiServer.worker;
-  worker.start({
-    onUnhandledRequest: "bypass",
-  });
-}
-
 const root = createRoot(document.getElementById("root"));
 
 root.render(app);

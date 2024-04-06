@@ -18,13 +18,15 @@ export const ReservoirsScatterChart = () => {
     dataReservoirs === undefined ? [] : dataReservoirs.map((row) => row.uuid);
   const timeOption = TimeOptions.YEAR;
   const inputs = {
-    reservoirUuids: reservoirUuids,
+    reservoirUuids: reservoirUuids || [],
     startDate: datesDefault[timeOption].start,
     endDate: datesDefault[timeOption].end,
     timeOption: timeOption,
     isFirstOfYear: true,
   };
-  const { data, isLoading } = useGetDailyDataQuery(inputs);
+  const { data, isLoading } = useGetDailyDataQuery(inputs, {
+    skip: reservoirUuids.length == 0,
+  });
 
   if (
     isLoadingReservoirs ||

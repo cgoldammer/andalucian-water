@@ -37,7 +37,7 @@ const setup = () => {
   const reservoirUuid = db.reservoir.getAll()[0].uuid;
   const { asFragment, getByText } = render(
     <Provider store={store}>
-      <ReservoirView reservoirUuid={reservoirUuid} />
+      <ReservoirView reservoirUuid={reservoirUuid} showDateControls={false} />
     </Provider>
   );
   return {

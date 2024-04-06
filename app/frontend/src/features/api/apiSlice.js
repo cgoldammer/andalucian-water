@@ -1,7 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import base64 from "base-64";
 const url = process.env.BACKENDURL || "http://localhost:9999/";
-console.log("Backend: " + url);
 
 export const apiSlice = createApi({
   reducerPath: "api",
@@ -9,7 +8,6 @@ export const apiSlice = createApi({
     baseUrl: url,
     prepareHeaders: (headers, { getState, endpoint }) => {
       const token = "Token " + getState().userData.token;
-      console.log("Header token in request:" + token);
       if (token != undefined && endpoint != "registerUser") {
         headers.set("authorization", token);
       }
@@ -95,7 +93,7 @@ export const apiSlice = createApi({
     getDailyData: builder.query({
       query: (data) => {
         const { isFirstOfYear, reservoirUuids, startDate, endDate } = data;
-        console.log("Reservoir UUIDs in function ", reservoirUuids);
+
         const uuidsJoined = reservoirUuids.join(",");
         const url = `/get_wide/?is_first_of_year=${isFirstOfYear}&reservoir_uuids=${uuidsJoined}&start_date=${startDate}&end_date=${endDate}`;
         return {

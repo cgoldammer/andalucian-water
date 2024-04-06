@@ -35,11 +35,7 @@ const getFeatures = (modeVal) => {
 };
 
 const devExports = (modeVal) => {
-  // console.log("mode: " + modeVal);
-  // console.log("Setting the following variables:")
-
   const features = getFeatures(modeVal);
-  // console.log(features);
 
   return {
     devServer: devServer,
