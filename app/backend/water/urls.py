@@ -8,10 +8,10 @@ from rest_framework.authtoken import views as authViews
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/test/<str:text>/", views.test, name="test"),
-    path("api/login_test/", views.get_login_test, name="get_login_test"),
-    path("api/api-token-auth/", authViews.obtain_auth_token),
-    path("api/register/", views.register_view, name="register"),
-    path("api/login/", views.login_view, name="login"),
+    path("api/login_test", views.get_login_test, name="get_login_test"),
+    path("api/api-token-auth", authViews.obtain_auth_token),
+    path("api/register", views.register_view, name="register"),
+    path("api/login", views.login_view, name="login"),
     path(
         "api/get_reservoir_states/",
         views.get_reservoir_states,

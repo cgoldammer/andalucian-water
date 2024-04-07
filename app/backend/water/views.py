@@ -1,7 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
 from .models import (
-    Inquiry,
     Reservoir,
     RainFall,
     ReservoirState,
@@ -55,7 +54,7 @@ def get_login_test(request):
         "auth": str(request.auth),  # None
     }
     # Return JSON
-    return Response(content)
+    return JsonResponse(content)
 
 
 @csrf_exempt
@@ -140,7 +139,6 @@ def get_reservoirs(request):
     reservoirs = data.get_reservoir_data()
     log.warn(f"reservoirs: {len(reservoirs)}")
     reservoirs_json = ReservoirSerializer2(reservoirs, many=True)
-
     return Response(reservoirs_json.data)
 
 
@@ -155,16 +153,14 @@ class FilterRequest:
         self.start_date = request.GET.get("start_date", None)
         self.end_date = request.GET.get("end_date", None)
         self.is_first_of_year = request.GET.get("is_first_of_year", "false") != "false"
-        self.reservoir_uuids = request.GET.get("reservoir_uuids", None)
-
-        log.info("Is yearly: " + str(self.is_first_of_year))
+        self.reservoir_uuids = request.GET.get("reservoir_uuids", "")
 
         self.inputs = {
             "num_obs": self.num_obs,
             "start_date": self.start_date,
             "end_date": self.end_date,
             "is_first_of_year": self.is_first_of_year,
-            "reservoir_uuids": self.reservoir_uuids,
+            "reservoir_uuids": self.reservoir_uuids.split(","),
         }
 
 
@@ -177,6 +173,8 @@ def createFilterRequest(handler, serializerForData):
 
         filter_request = FilterRequest(request)
         inputs = filter_request.inputs
+
+        log.info("Inputs: " + str(inputs))
 
         # Require start_date and end_date
         if not inputs["start_date"] or not inputs["end_date"]:
@@ -192,13 +190,12 @@ def createFilterRequest(handler, serializerForData):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        log.info("Inputs: " + str(inputs))
+        log.info("RUNNING handler")
+        log.info(handler)
         states = handler(**inputs)
         # log.info("States: " + str(len(states)))
 
         serializer = serializerForData(states, many=True)
-        log.info(serializer.data[0])
-
         return Response(serializer.data)
 
     return filter_request

@@ -1,6 +1,9 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useGetReservoirsJsonQuery } from "./api/apiSlice";
+import {
+  useGetReservoirsJsonQuery,
+  useGetReservoirsQuery,
+} from "./api/apiSlice";
 import Grid from "@mui/material/Unstable_Grid2";
 
 import { MapContainer } from "react-leaflet/MapContainer";
@@ -9,36 +12,98 @@ import { useMap } from "react-leaflet/hooks";
 import { ReservoirView } from "./reservoir/ReservoirView";
 
 import { setReservoirUuidSelected } from "../reducers/uiReducer";
+import { Marker, Popup, SVGOverlay } from "react-leaflet";
 
 // malaga, spain
 const position = [36.7213, -4.4216];
 
 import PropTypes from "prop-types";
 
-function MyComponent(props) {
-  const { data } = props;
-  const dispatch = useDispatch();
-  const map = useMap();
-  useEffect(() => {
-    // eslint-disable-next-line no-undef
-    const geoJsonLayer = L.geoJSON(data, {
-      onEachFeature: (feature, layer) => {
-        // eslint-disable-next-line no-undef
-        const marker = L.marker(layer.getBounds().getCenter()).addTo(map);
-        marker.bindPopup(feature.properties.nombre);
-        marker.on("click", () => {
-          dispatch(setReservoirUuidSelected(feature.properties.reservoir_uuid));
-        });
-      },
-    }).addTo(map);
-    map.fitBounds(geoJsonLayer.getBounds());
-  }, [map, data, dispatch]);
+const invertXY = (coordinates) => {
+  return [coordinates[1], coordinates[0]];
+};
 
-  return <div></div>;
+const shiftPoint = (point, shiftX = 0, shiftY = 0) => {
+  return [point[0] + shiftX, point[1] + shiftY];
+};
+
+const getBounds = (coordinates) => {
+  const coordsStart = invertXY(coordinates);
+  const shiftWidth = 0.1;
+  return [
+    shiftPoint(coordsStart, -shiftWidth, -shiftWidth),
+    shiftPoint(coordsStart, shiftWidth, shiftWidth),
+  ];
+};
+
+const getLabel = (properties, byId) => {
+  const id = properties.reservoir_uuid;
+  const latestVolume = byId[id].volume_latest;
+  const capacity = byId[id].capacity;
+  const fillRate = latestVolume / capacity;
+  return `${properties.nombre}: ${(fillRate * 100).toFixed(
+    0
+  )}% filled - ${latestVolume.toFixed(2)} m3 / ${capacity.toFixed(2)} m3`;
+};
+
+function MyComponent(props) {
+  const { data, byId } = props;
+  const dispatch = useDispatch();
+  const markers = data.features.map((feature) => (
+    <Marker
+      key={feature.properties.reservoir_uuid}
+      position={invertXY(feature.geometry.coordinates[0][0])}
+      eventHandlers={{
+        click: () => {
+          dispatch(setReservoirUuidSelected(feature.properties.reservoir_uuid));
+        },
+      }}
+      opacity={1} // Add this line to make the marker invisible
+    >
+      <Popup>{getLabel(feature.properties, byId)}</Popup>
+    </Marker>
+  ));
+
+  const featureSVG = (feature) => {
+    const id = feature.properties.reservoir_uuid;
+    const coord = feature.geometry.coordinates[0][0];
+    const scaler = 5;
+    const size = byId[id].capacity * scaler;
+    const volume = byId[id].volume_latest * scaler;
+
+    /* The sizeRadius and volumeRadius are set so that the circles occupy the area of the size and volume correspondingly */
+    const sizeRadius = Math.sqrt(size) * 0.5;
+    const volumeRadius = Math.sqrt(volume) * 0.5;
+
+    return (
+      <SVGOverlay attributes={{ stroke: "grey" }} bounds={getBounds(coord)}>
+        <circle r={sizeRadius} cx="50%" cy="50%" fill="lightgrey" />
+        <circle r={volumeRadius} cx="50%" cy="50%" fill="green" />
+      </SVGOverlay>
+    );
+  };
+
+  const circles = data.features.map(featureSVG);
+
+  return (
+    <div>
+      <div>{markers}</div>
+      <div>{circles}</div>
+    </div>
+  );
 }
 
 MyComponent.propTypes = {
   data: PropTypes.object.isRequired,
+  byId: PropTypes.object.isRequired,
+};
+
+const reservorDictByUuid = (reservoirList) => {
+  const res = reservoirList.reduce((acc, row) => {
+    acc[row.uuid] = row;
+    return acc;
+  }, {});
+  return res;
 };
 
 export const MapView = () => {
@@ -46,19 +111,30 @@ export const MapView = () => {
     (state) => state.ui.reservoirUuidSelected
   );
   const { data, isLoading, error } = useGetReservoirsJsonQuery();
+  console.log("Data", data);
+  const { data: dataReservoirs, isLoading: isLoadingReservoirs } =
+    useGetReservoirsQuery();
 
-  if (isLoading) {
+  if (isLoading || isLoadingReservoirs) {
     return <div>Loading...</div>;
   }
   if (error) {
     return <div>Error: {error}</div>;
   }
 
+  const byId = reservorDictByUuid(dataReservoirs);
+
+  const reservoirName = dataReservoirs
+    .filter((row) => row.uuid == reservoirUuidSelected)
+    .map((row) => row.name_full);
+  console.log(dataReservoirs);
+
   var resView = <div></div>;
   if (reservoirUuidSelected) {
     resView = (
       <ReservoirView
         reservoirUuid={reservoirUuidSelected}
+        reservoirName={reservoirName}
         showDateControls={false}
       />
     );
@@ -82,7 +158,7 @@ export const MapView = () => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <MyComponent data={data} />
+        <MyComponent data={data} byId={byId} />
       </MapContainer>
       {resView}
     </Grid>

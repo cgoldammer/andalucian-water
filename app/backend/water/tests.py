@@ -25,7 +25,7 @@ class AppTest(TestCase):
         self.user = User.objects.create_user(**user_data)
 
     def set_token(self):
-        response = self.client.post("/api/api-token-auth/", user_data, format="json")
+        response = self.client.post("/api/api-token-auth", user_data, format="json")
 
         # Assert that the token is valid
         token = response.json()["token"]
@@ -43,7 +43,7 @@ class UserTestCase(AppTest):
         Test that the user can login
         """
         user = self.user
-        response = self.client.post("/api/api-token-auth/", user_data, format="json")
+        response = self.client.post("/api/api-token-auth", user_data, format="json")
         self.assertEqual(
             response.status_code, 200
         )  # Replace 200 with the expected status code
@@ -56,7 +56,7 @@ class UserTestCase(AppTest):
         """
         user = self.user
         response = self.client.post(
-            "/api/api-token-auth/",
+            "/api/api-token-auth",
             {"username": user.username, "password": "wrong_password"},
             format="json",
         )
@@ -71,7 +71,7 @@ class UserTestCase(AppTest):
         """
         user = self.user
         response = self.client.post(
-            "/api/api-token-auth/",
+            "/api/api-token-auth",
             {"username": wrong_username, "password": password},
             format="json",
         )
@@ -84,13 +84,12 @@ class UserTestCase(AppTest):
 
         # Log in and obtain the token from the api-token-auth
         # endpoint
-        response = self.client.post("/api/api-token-auth/", user_data, format="json")
+        response = self.client.post("/api/api-token-auth", user_data, format="json")
 
         # Assert that the token is valid
         token = response.json()["token"]
         self.assertTrue(token)
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token)
-
         response = self.client.get("/api/login_test", format="json")
         self.assertTrue("user" in response.json())
 
@@ -108,6 +107,21 @@ class ReservoirTestCase(AppTest):
         reservoirs_raw = Reservoir.objects.all()
         self.assertTrue(len(reservoirs) == len(reservoirs_raw))
 
+        # first_reservoir = reservoirs[0]
+        # states_for_first_reservoir = ReservoirState.objects.filter(
+        #     reservoir=first_reservoir
+        # )
+        # print("RESPOINSE")
+        # print(reservoirs[0].uuid, reservoirs[0].num_states, reservoirs[0].volume_latest)
+        # latest_state = states_for_first_reservoir.latest("date")
+        # first_reservoir_in_response = [
+        #     r for r in reservoirs if r.uuid == str(first_reservoir.uuid)
+        # ][0]
+
+        # self.assertTrue(
+        #     first_reservoir_in_response.volume_latest == latest_state.volume
+        # )
+
     def testGetReservoirStates(self):
         setup_script.fill_simple()
         reservoirs = Reservoir.objects.all()
@@ -118,7 +132,7 @@ class ReservoirTestCase(AppTest):
 
         num_obs = 10
         states = data.get_reservoir_states_data(
-            num_obs, start_date, end_date, False, str(reservoir.uuid)
+            num_obs, start_date, end_date, False, [str(reservoir.uuid)]
         )
 
         assert len(states) > 0
@@ -128,14 +142,14 @@ class ReservoirTestCase(AppTest):
         date_start = "2023-09-01"
         date_end = "2024-01-01"
         setup_script.fill_simple(num_reservoirs, date_start, date_end)
-        reservoir_uuid = str(Reservoir.objects.all()[0].uuid)
+        reservoir_uuids = [str(Reservoir.objects.all()[0].uuid)]
 
         arguments = {
             "num_obs": 1000,
             "start_date": date_start,
             "end_date": date_end,
             "is_first_of_year": True,
-            "reservoir_uuids": reservoir_uuid,
+            "reservoir_uuids": reservoir_uuids,
         }
         states_year = data.get_wide_data(**arguments)
         assert len(states_year) == num_reservoirs
@@ -146,14 +160,14 @@ class ReservoirTestCase(AppTest):
 
     def testGetWideDaily(self):
         setup_script.fill_simple()
-        reservoir_uuid = str(Reservoir.objects.all()[0].uuid)
+        reservoir_uuids = [str(Reservoir.objects.all()[0].uuid)]
 
         arguments = {
             "num_obs": 10,
             "start_date": "1970-01-01",
             "end_date": "2999-01-01",
             "is_first_of_year": False,
-            "reservoir_uuids": reservoir_uuid,
+            "reservoir_uuids": reservoir_uuids,
         }
         states = data.get_wide_data(**arguments)
 

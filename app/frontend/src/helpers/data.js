@@ -151,7 +151,20 @@ export const getTableData = (data, timeOption = "day") => {
   return { dataCleaned: dataAdded, columns };
 };
 
-export const constShortfall = 0.5;
+/* 
+The shortfall (as share of capacity) is calculate as:
+
+constShortfall * (1 - rainfallExpected)
+
+So e.g. if there is no rain, then rainFallExpected is 0
+and the shortfall is constShortfall. And if rainfall is
+100% of historical average then the shortfall is 0 for all coefficients.
+This is consistent with the simple model here:
+https://github.com/cgoldammer/andalucian-water/blob/master/app/backend/water/scripts/forecast.ipynb
+*/
+
+export const constShortfall = 0.3;
+
 export const addShortfall = (data, rainfallExpected) => {
   return data.map((row) => {
     return {

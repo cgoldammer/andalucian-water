@@ -34,7 +34,7 @@ export const timeOptionData = {
 };
 
 export const CreateGraph = (inputs) => {
-  const { timeOption } = inputs;
+  const { timeOption, reservoirName } = inputs;
   const isFirstOfYear = timeOption == TimeOptions.YEAR;
 
   const { data, isLoading, error } = useGetDailyDataQuery({
@@ -69,9 +69,6 @@ export const CreateGraph = (inputs) => {
 
   const { dataCleaned } = getTableData(data, timeOption);
   const { series, xvalues } = getChartData(dataCleaned, timeOption);
-
-  const reservoirName = dataCleaned[0].reservoirName;
-
   const xAxis = [
     {
       id: "years",
@@ -83,7 +80,13 @@ export const CreateGraph = (inputs) => {
 
   return (
     <Grid container justifyContent="center" alignItems="center" xs={12}>
-      <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
+      <Grid
+        display="flex"
+        justifyContent="center"
+        margin="10px;"
+        alignItems="center"
+        xs={12}
+      >
         <Typography variant="h4">Yearly view for: {reservoirName}</Typography>
       </Grid>
       <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
@@ -110,7 +113,7 @@ export const CreateGraph = (inputs) => {
 };
 
 export const ReservoirView = (props) => {
-  const { reservoirUuid, showDateControls } = props;
+  const { reservoirUuid, showDateControls, reservoirName } = props;
   const [timeOption, setTimeOption] = React.useState(timeOptionDefault);
   const [startDate, setStartDate] = React.useState(
     datesDefault[timeOption].start
@@ -147,6 +150,7 @@ export const ReservoirView = (props) => {
         {...inputs}
         timeOption={timeOption}
         showDateControls={false}
+        reservoirName={reservoirName}
       />
     );
   }

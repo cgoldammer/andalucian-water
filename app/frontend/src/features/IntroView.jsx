@@ -9,9 +9,6 @@ import CardContent from "@mui/material/CardContent";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 
-// global.$RefreshReg$ = () => {};
-// global.$RefreshSig$ = () => () => {};
-
 const FeatureCard = (props) => {
   const { name, description, linkLocation } = props;
   const navigate = useNavigate();
@@ -42,13 +39,13 @@ FeatureCard.propTypes = {
 };
 
 export const IntroView = () => (
-  <Grid container spacing={1}>
-    <Grid xs={6}>
-      <CenteredGrid xs={12}>
-        <Typography variant="h1" role="title" style={{ textAlign: "justify" }}>
-          {texts.projectTag}
-        </Typography>
-      </CenteredGrid>
+  <Grid container spacing={2}>
+    <CenteredGrid xs={12}>
+      <Typography variant="h1" role="title" style={{ textAlign: "justify" }}>
+        {texts.projectTag}
+      </Typography>
+    </CenteredGrid>
+    <Grid md={4}>
       <CenteredGrid xs={12}>
         <Typography
           role="description"
@@ -58,14 +55,8 @@ export const IntroView = () => (
         </Typography>
       </CenteredGrid>
     </Grid>
-    <Grid xs={5}>
-      <Image
-        component="img"
-        alt="Something"
-        src={"https://andalucianwater.s3.amazonaws.com/images/reservoir.jpg"}
-      />
-    </Grid>
-    <Grid xs={12}>
+
+    <Grid md={6}>
       <CenteredGrid xs={12}>
         {texts.projectFeatures.map((feature) => (
           <FeatureCard key={feature.name} {...feature} />

@@ -7,13 +7,12 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "water_prod",
-        "HOST": "postgres",
+        "HOST": "water.c30hvdgqsc84.us-east-1.rds.amazonaws.com",
         "USER": "postgres",
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
         "PORT": "5432",
     }
 }
-
-print(DATABASES)
 
 ALLOWED_HOSTS = ["*"]
 SECRET_KEY = os.environ.get("SECRET_KEY")

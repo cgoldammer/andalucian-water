@@ -14,17 +14,17 @@ LOGGING = {
     },
     "handlers": {
         "console": {
-            "level": "INFO",
+            "level": "DEBUG",
             "filters": ["require_debug_true"],
             "class": "logging.StreamHandler",
         },
         "file_sql": {
-            "level": "WARNING",
+            "level": "DEBUG",
             "class": "logging.FileHandler",
             "filename": os.path.join(BASE_DIR, "logs", "log_sql.txt"),
         },
         "file": {
-            "level": "WARNING",
+            "level": "DEBUG",
             "class": "logging.FileHandler",
             "filename": os.path.join(BASE_DIR, "logs", "log.txt"),
         },
@@ -34,19 +34,47 @@ LOGGING = {
             "level": "DEBUG",
             "handlers": ["file_sql"],
         },
-        "water.views": {  # This is the root logger configuration
+        "water": {  # This is the root logger configuration
             "handlers": ["console", "file"],
-            "level": "INFO",
+            "level": "DEBUG",
+        },
+        "django.request": {
+            "handlers": ["console", "file"],  # Adjust as necessary
+            "level": "DEBUG",  # Capture all debug and above messages
+            "propagate": True,
         },
     },
 }
 
-DATABASES = {
-    "default": {
+# Add the LOGGING configuration to every module in the "water" package
+import logging.config
+
+logging.config.dictConfig(LOGGING)
+
+db_used = os.environ.get("DB_USED", "local")
+db_password = os.environ.get("POSTGRES_PASSWORD")
+print(db_used)
+
+database_confs = {
+    "local": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "water_dev",
         "USER": "postgres",
-    }
+    },
+    "rdstunnel": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "water_prod",
+        "HOST": "localhost",
+        "USER": "postgres",
+        "PORT": "5434",
+        "PASSWORD": db_password,
+    },
 }
 
-SECRET_KEY = "django-insecure-50q41reeg!gh!8#=6o1v=j0tv91!dy0b*5o6%a*9_*87g5f79@"
+DATABASES = {
+    "default": database_confs[db_used],
+}
+
+print(DATABASES)
+
+SECRET_KEY = os.environ.get("SECRET_KEY")

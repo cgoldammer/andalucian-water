@@ -60,10 +60,19 @@ class ReservoirSerializer(serializers.ModelSerializer):
 
 class ReservoirSerializer2(serializers.ModelSerializer):
     num_states = serializers.IntegerField()
+    volume_latest = serializers.FloatField()
 
     class Meta:
         model = Reservoir
-        fields = ["uuid", "name", "capacity", "num_states"]
+        fields = [
+            "uuid",
+            "name",
+            "name_full",
+            "province",
+            "capacity",
+            "num_states",
+            "volume_latest",
+        ]
 
 
 class ReservoirStateSerializer(serializers.ModelSerializer):
@@ -77,14 +86,6 @@ class ReservoirStateSerializer(serializers.ModelSerializer):
 class ReservoirQuery(UuidModel):
     name = models.CharField(max_length=100)
     capacity = models.FloatField(null=False)
-
-
-class ReservoirSerializer2(serializers.ModelSerializer):
-    num_states = serializers.IntegerField()
-
-    class Meta:
-        model = Reservoir
-        fields = ["uuid", "name", "capacity", "num_states"]
 
 
 class RainFallSerializer(serializers.ModelSerializer):

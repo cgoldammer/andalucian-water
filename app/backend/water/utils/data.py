@@ -11,31 +11,30 @@ import logging
 from ..models import ReservoirSerializer
 from collections import defaultdict
 from rest_framework import serializers
+from django.db.models import OuterRef, Subquery, Max
+from django.db.models.functions import Coalesce
 
 log = logging.getLogger(__name__)
 
 
 def get_filters(q, num_obs, start_date, end_date, is_first_of_year, reservoir_uuids):
-    log.info("Num at start: %s", q.count())
-    q = q.filter(date__gte=start_date, date__lte=end_date).order_by(
+    q_new = q.filter(date__gte=start_date, date__lte=end_date).order_by(
         "reservoir__uuid", "date"
     )
     if is_first_of_year:
-        q = (
-            q.filter(date__day=1)
+        q_new = (
+            q_new.filter(date__day=1)
             .filter(date__month=9)
             .order_by("reservoir__uuid", "date")
         )
-
-    log.info("Num after first: %s", q.count())
-    reservoir_list = reservoir_uuids.split(",")
-    q = q.filter(reservoir__uuid__in=reservoir_list)
-    return q
+    q_new = q_new.filter(reservoir__uuid__in=reservoir_uuids)
+    return q_new
 
 
 def get_reservoir_states_data(
     num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
 ):
+    log.info("Getting states")
     states = ReservoirState.objects.all()
     return get_filters(
         states, num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
@@ -44,14 +43,23 @@ def get_reservoir_states_data(
 
 def get_rainfall_data(num_obs, start_date, end_date, is_first_of_year, reservoir_uuids):
     states = RainFall.objects.all()
+
     return get_filters(
         states, num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
     )
 
 
 def get_reservoir_data():
+    date_latest = "2023-09-01"
+    most_recent_volume = (
+        ReservoirState.objects.filter(reservoir=OuterRef("pk"), date=date_latest)
+        .order_by()
+        .values("volume")[:1]
+    )
+
     reservoirs = Reservoir.objects.annotate(
-        num_states=Count("reservoir_reservoirstate")
+        num_states=Count("reservoir_reservoirstate"),
+        volume_latest=Coalesce(Subquery(most_recent_volume), 0.0),
     )
     return reservoirs
 
@@ -62,6 +70,7 @@ def get_wide_data(num_obs, start_date, end_date, is_first_of_year, reservoir_uui
     # join on the date and reservoir_uuid columns
     # use the ORM to create the join
     log.info("Getting wide data")
+
     states = get_reservoir_states_data(
         num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
     )
@@ -78,6 +87,11 @@ def get_wide_data(num_obs, start_date, end_date, is_first_of_year, reservoir_uui
 
     rainfall_grouped = group_records(rainfall)
     reservoir_grouped = group_records(states)
+
+    if states.count() == 0:
+        print("GROUPED")
+        print(reservoir_grouped)
+        return []
 
     # Step 3: Combine the groups to achieve a full outer join effect
     combined_group = defaultdict(lambda: {"Rainfall": None, "ReservoirState": None})

@@ -24,6 +24,11 @@ def clean_name(name):
     return name
 
 
+def pick_yearly(df):
+    df_monthly = df[df.ds.str.slice(5, 10) == "09-01"].copy()
+    return df_monthly
+
+
 def pick_monthly(df):
     df_monthly = df[df.ds.str.slice(8, 10) == "01"].copy()
     return df_monthly
@@ -31,7 +36,7 @@ def pick_monthly(df):
 
 def get_data():
     df = pd.read_csv(filename_data)
-    return pick_monthly(df)
+    return pick_yearly(df)
 
 
 def read_reservoir_geo():

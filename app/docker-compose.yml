@@ -1,17 +1,6 @@
 version: "3.9"
 
-services:
-  postgres:
-    build: 
-      context: .
-      dockerfile: Dockerfile-postgres
-    environment:
-      POSTGRES_HOST_AUTH_METHOD: trust
-      POSTGRES_USER: postgres
-      POSTGRES_DB: water_prod
-    ports:
-      - "5433:5432"
-      
+services:      
   nginx:
     build:
       context: .
@@ -35,8 +24,6 @@ services:
     image: certbot/certbot:latest
 
   django:
-    depends_on:
-      - postgres
     build:
       context: .
       dockerfile: Dockerfile-django
@@ -44,3 +31,4 @@ services:
       - "8002:8002"
     environment:
       - SECRET_KEY=${SECRET_KEY}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
