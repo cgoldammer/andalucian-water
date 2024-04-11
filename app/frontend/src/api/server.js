@@ -1,22 +1,12 @@
 import { http, HttpResponse } from "msw";
-import { setupWorker, setupServer } from "msw/browser";
-import { factory, oneOf, manyOf, primaryKey } from "@mswjs/data";
+import { setupWorker } from "msw/browser";
+import { factory, oneOf, primaryKey } from "@mswjs/data";
 import { faker } from "@faker-js/faker";
 import seedrandom from "seedrandom";
-import { defaultImageFilename, positionAndalucia } from "../texts";
 import { setRandom } from "txtgen";
 import { dateString } from "../helpers/data";
 
 import { store } from "../store";
-import {
-  getRange,
-  getRandomSample,
-  getRandomSampleShare,
-} from "../helpers/helpers";
-
-const numLocations = 5;
-const numBlocks = 20;
-const ARTIFICIAL_DELAY_MS = 100;
 
 /* RNG setup */
 // Set up a seeded random number generator, so that we get
@@ -161,7 +151,7 @@ export const getDailyData = (db) => {
 export const defaultStub = "/fakeApi";
 
 export const handlers = (db, defaultStub = defaultStub) => [
-  http.get(defaultStub + "/test/*", ({ params }) => {
+  http.get(defaultStub + "/test/*", () => {
     return HttpResponse.json(
       { message: "Hello from the fake API!" },
       { status: 201 }
@@ -173,15 +163,15 @@ export const handlers = (db, defaultStub = defaultStub) => [
   http.post(defaultStub + "login", (req, res, ctx) => {
     return res(ctx.json("Basic tokenFromServer"));
   }),
-  http.get(defaultStub + "/get_reservoirs", (req, res, ctx) => {
+  http.get(defaultStub + "/get_reservoirs", () => {
     const reservoirs = getReservoirs(db);
     return HttpResponse.json(reservoirs, { status: 201 });
   }),
-  http.get(defaultStub + "/get_user", (req, res, ctx) => {
+  http.get(defaultStub + "/get_user", () => {
     const user = db.user.getAll()[0];
     return HttpResponse.json(user, { status: 201 });
   }),
-  http.get(defaultStub + "/get_reservoir_states", (req, res, ctx) => {
+  http.get(defaultStub + "/get_reservoir_states", () => {
     const matchResponseSeconds = store.getState().settings.matchResponseSeconds;
     const reservoirStates = getReservoirStates(db);
     return HttpResponse.json(
@@ -190,7 +180,7 @@ export const handlers = (db, defaultStub = defaultStub) => [
       matchResponseSeconds * 1000
     );
   }),
-  http.get(defaultStub + "/get_wide", (req, res, ctx) => {
+  http.get(defaultStub + "/get_wide", () => {
     const matchResponseSeconds = store.getState().settings.matchResponseSeconds;
 
     const dailyData = getDailyData(db);

@@ -17,6 +17,7 @@ services:
       - ./frontend/serve_content:/etc/nginx/html
       - ./support/logs:/etc/nginx/logs
       - ./support/sshkeys:/etc/letsencrypt
+      - /tmp/nginx:/tmp
     links:
       - django
 

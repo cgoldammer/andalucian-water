@@ -8,6 +8,7 @@ import Grid from "@mui/material/Unstable_Grid2";
 import { datesDefault } from "../../helpers/defaults";
 import { axisClasses } from "@mui/x-charts/ChartsAxis";
 import PropTypes from "prop-types";
+import { texts } from "../../texts";
 
 const valueFormatter = (value) => `${(value * 100).toFixed(0)}%`;
 
@@ -124,13 +125,8 @@ export const ReservoirsScatterChart = () => {
 
   return (
     <Grid container justifyContent="center" alignItems="center" xs={12}>
-      <Typography variant="h4">The input: Rainfall and fill rates</Typography>
-      <Typography>
-        The more it rains (as % of historical average, x-axis), the more the
-        reservoir fills up (change in fill rate compared to last year=YOY,
-        y-axis). We are using this relationship to predict the shortfall that is
-        displayed above.
-      </Typography>
+      <Typography variant="h4">{texts.titleScatter}</Typography>
+      <Typography>{texts.descriptionScatter}</Typography>
       {chart}
     </Grid>
   );

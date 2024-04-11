@@ -30,5 +30,9 @@ module.exports = {
     describe: true,
     expect: true,
     process: true,
+    jest: true,
+    beforeAll: true,
+    afterEach: true,
+    afterAll: true,
   },
 };

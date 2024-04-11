@@ -212,4 +212,5 @@ export const ReservoirView = (props) => {
 ReservoirView.propTypes = {
   reservoirUuid: PropTypes.string.isRequired,
   showDateControls: PropTypes.bool.isRequired,
+  reservoirName: PropTypes.string.isRequired,
 };

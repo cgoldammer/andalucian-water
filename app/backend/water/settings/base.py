@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "water",
     "rest_framework",
+    "django.contrib.gis",
     "corsheaders",
 ]
 

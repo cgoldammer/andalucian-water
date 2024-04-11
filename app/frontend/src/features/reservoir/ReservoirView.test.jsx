@@ -1,5 +1,5 @@
 // import { faker } from "@faker-js/faker";
-import { setupServer, rest } from "msw/node";
+import { setupServer } from "msw/node";
 import { getDB, handlers } from "../../api/server";
 import "@testing-library/jest-dom";
 import { render } from "@testing-library/react";
@@ -44,6 +44,7 @@ const setup = (reservoirUuid, showDateControls) => {
       <ReservoirView
         reservoirUuid={reservoirUuid}
         showDateControls={showDateControls}
+        reservoirName={"test"}
       />
     </Provider>
   );

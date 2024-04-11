@@ -2,6 +2,7 @@ from ..models import (
     Reservoir,
     RainFall,
     ReservoirState,
+    ReservoirGeo,
     ReservoirSerializer,
     ReservoirStateSerializer,
     RainFallSerializer,
@@ -134,3 +135,31 @@ class DailyDataSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         pass
+
+
+def get_reservoirs_geojson():
+
+    reservoirs_geo = ReservoirGeo.objects.all()
+
+    features = []
+    for reservoir_geo in reservoirs_geo:
+        reservoir = reservoir_geo.reservoir
+        feature = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": reservoir_geo.geometry.coords[0],
+            },
+            "properties": {
+                "name": reservoir.name,
+                "name_full": reservoir.name_full,
+                "reservoir_uuid": str(reservoir.uuid),
+            },
+        }
+        features.append(feature)
+    geojson = {
+        "type": "FeatureCollection",
+        "features": features,
+    }
+
+    return geojson

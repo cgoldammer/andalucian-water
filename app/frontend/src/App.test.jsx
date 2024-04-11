@@ -1,19 +1,5 @@
-import {
-  getReservoirStates,
-  getDailyData,
-  getDB,
-  createReservoir,
-  createReservoirState,
-  createRainfall,
-} from "./api/server";
-import {
-  getChartData,
-  getTableData,
-  addDay,
-  addYear,
-  dateString,
-} from "./helpers/data";
-import { faker } from "@faker-js/faker";
+import { getReservoirStates, getDailyData, getDB } from "./api/server";
+import { getChartData, getTableData, addDay, addYear } from "./helpers/data";
 import "@testing-library/jest-dom";
 
 import { addMockDataTest } from "./helpers/fixture";
@@ -47,8 +33,8 @@ describe("Tests with data from db", () => {
     addMockDataTest(db, 2, 2);
     const daily = getDailyData(db);
     expect(daily.length).toBe(numReservoirs * numDates);
-    const { dataCleaned, columns } = getTableData(daily);
-    const { series, xvalues } = getChartData(dataCleaned);
+    const { dataCleaned } = getTableData(daily);
+    const { series } = getChartData(dataCleaned);
     expect(series.length).toBe(numReservoirs * 2);
   });
 
@@ -56,7 +42,7 @@ describe("Tests with data from db", () => {
     const db = getDB();
     addMockDataTest(db, 2, 2, addDay);
     const daily = getDailyData(db);
-    const { dataCleaned, columns } = getTableData(daily);
+    const { columns } = getTableData(daily);
     expect(columns.map((col) => col.field)).not.toContain("volumeLagged");
   });
   test("Yearly lags are correct with yearly data", () => {

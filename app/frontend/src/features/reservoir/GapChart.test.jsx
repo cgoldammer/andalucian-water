@@ -1,11 +1,10 @@
 // import { faker } from "@faker-js/faker";
-import { setupServer, rest } from "msw/node";
+import { setupServer } from "msw/node";
 import { getDB, handlers, getReservoirs, getDailyData } from "../../api/server";
 import "@testing-library/jest-dom";
 import { render } from "@testing-library/react";
 import { addMockDataTest } from "../../helpers/fixture";
 import React from "react";
-import { useGetReservoirsQuery, apiSlice } from "../../features/api/apiSlice";
 
 test("It should print the reservoir UUid", () => {
   expect(true).toBe(true);
@@ -31,7 +30,6 @@ addMockDataTest(db, 2, 2);
 const fakeServer = setupServer(...handlers(db, "http://localhost:9999"));
 fakeServer.listen();
 
-const mockData = db.reservoir.getAll();
 const mockValReservoirs = {
   data: getReservoirs(db),
   isLoading: false,

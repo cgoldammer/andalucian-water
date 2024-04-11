@@ -1,5 +1,5 @@
 import { IntroView } from "./IntroView";
-import { render, fireEvent, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import React from "react";
 import { texts } from "../texts";
 import "@testing-library/jest-dom";

@@ -5,13 +5,6 @@ export const getChartData = (data, timeOption) => {
   ].sort();
   const dates = datesJson.map((date) => JSON.parse(date));
 
-  const isEmpty = (arr) => {
-    const allNulls = arr.every((value) => value === null);
-    const allNaNs = arr.every((value) => isNaN(value));
-    const noLength = arr.length == 0;
-    return allNulls || allNaNs || noLength;
-  };
-
   const getValuesForUuid = (uuid, extractor, lineId) => {
     const rows = data.filter((row) => row.reservoirUuid == uuid);
     if (rows.length == 0) {
@@ -150,7 +143,6 @@ export const getTableData = (data, timeOption = "day") => {
 
   return { dataCleaned: dataAdded, columns };
 };
-
 /* 
 The shortfall (as share of capacity) is calculate as:
 

@@ -1,13 +1,14 @@
 import React from "react";
 import Grid from "@mui/material/Unstable_Grid2";
 import Typography from "@mui/material/Typography";
-import { CenteredGrid, Image } from "../helpers/helpersUI";
+import { CenteredGrid } from "../helpers/helpersUI";
 import { texts } from "../texts";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
 import CardContent from "@mui/material/CardContent";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
+import { Alert } from "@mui/material";
 
 const FeatureCard = (props) => {
   const { name, description, linkLocation } = props;
@@ -47,12 +48,19 @@ export const IntroView = () => (
     </CenteredGrid>
     <Grid md={4}>
       <CenteredGrid xs={12}>
+        <Alert severity="warning">{texts.projectWarnings}</Alert>
         <Typography
           role="description"
           style={{ textAlign: "justify", padding: "20px" }}
         >
           {texts.projectDescription}
         </Typography>
+      </CenteredGrid>
+      <CenteredGrid xs={12}>
+        <Typography
+          role="description"
+          style={{ textAlign: "justify", padding: "20px" }}
+        ></Typography>
       </CenteredGrid>
     </Grid>
 

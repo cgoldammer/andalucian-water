@@ -5,7 +5,7 @@ DEBUG = False
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": "water_prod",
         "HOST": "water.c30hvdgqsc84.us-east-1.rds.amazonaws.com",
         "USER": "postgres",

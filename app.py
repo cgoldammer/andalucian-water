@@ -3,7 +3,7 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
-import parse
+import app.backend.water.utils.parse as parse
 
 texts_english = {
     'title': 'Water In Andalusia',

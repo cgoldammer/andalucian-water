@@ -9,6 +9,7 @@ import Grid from "@mui/material/Unstable_Grid2";
 import Typography from "@mui/material/Typography";
 
 import PropTypes from "prop-types";
+import { texts } from "../../texts";
 
 export const GapChart = () => {
   const [rainfallExpected, setRainfallExpected] = React.useState(0.5);
@@ -112,9 +113,17 @@ export const GapChartDisplay = (props) => {
         <Typography variant="h4">Shortfall</Typography>
       </Grid>
       <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
+        <Typography>{texts.descriptionGap}</Typography>
+      </Grid>
+      <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
         <Typography>
-          Given the relative rainfall, we can predict the shortfall, which is
-          the expected reduction in overall reservoir levels (all in HM3).
+          <a
+            href="https://github.com/cgoldammer/andalucian-water/blob/master/app/backend/water/scripts/forecast.ipynb"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {texts.analysisName}
+          </a>
         </Typography>
       </Grid>
 
@@ -126,16 +135,6 @@ export const GapChartDisplay = (props) => {
           xAxis={[{ scaleType: "band", data: ["overall"] }]}
           slotProps={{ legend: { hidden: true } }}
         />
-        {/* <div style={{ flex: 1 }}>
-          <BarChart
-            series={seriesReservoir}
-            width={300}
-            height={300}
-            leftAxis={null}
-            xAxis={[{ scaleType: "band", data: ["Reservoir"] }]}
-            slotProps={{ legend: { hidden: true } }}
-          />
-        </div> */}
       </Grid>
     </Grid>
   );

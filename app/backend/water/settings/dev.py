@@ -57,12 +57,12 @@ print(db_used)
 
 database_confs = {
     "local": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": "water_dev",
         "USER": "postgres",
     },
     "rdstunnel": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": "water_prod",
         "HOST": "localhost",
         "USER": "postgres",

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   useGetReservoirsJsonQuery,
@@ -8,14 +8,13 @@ import Grid from "@mui/material/Unstable_Grid2";
 
 import { MapContainer } from "react-leaflet/MapContainer";
 import { TileLayer } from "react-leaflet/TileLayer";
-import { useMap } from "react-leaflet/hooks";
 import { ReservoirView } from "./reservoir/ReservoirView";
 
 import { setReservoirUuidSelected } from "../reducers/uiReducer";
 import { Marker, Popup, SVGOverlay } from "react-leaflet";
 
 // malaga, spain
-const position = [36.7213, -4.4216];
+const position = [37.4213, -4.816];
 
 import PropTypes from "prop-types";
 
@@ -29,7 +28,7 @@ const shiftPoint = (point, shiftX = 0, shiftY = 0) => {
 
 const getBounds = (coordinates) => {
   const coordsStart = invertXY(coordinates);
-  const shiftWidth = 0.1;
+  const shiftWidth = 0.5;
   return [
     shiftPoint(coordsStart, -shiftWidth, -shiftWidth),
     shiftPoint(coordsStart, shiftWidth, shiftWidth),
@@ -38,6 +37,10 @@ const getBounds = (coordinates) => {
 
 const getLabel = (properties, byId) => {
   const id = properties.reservoir_uuid;
+  if (!byId[id]) {
+    return "No data";
+  }
+
   const latestVolume = byId[id].volume_latest;
   const capacity = byId[id].capacity;
   const fillRate = latestVolume / capacity;
@@ -49,10 +52,11 @@ const getLabel = (properties, byId) => {
 function MyComponent(props) {
   const { data, byId } = props;
   const dispatch = useDispatch();
+
   const markers = data.features.map((feature) => (
     <Marker
       key={feature.properties.reservoir_uuid}
-      position={invertXY(feature.geometry.coordinates[0][0])}
+      position={invertXY(feature.geometry.coordinates[0])}
       eventHandlers={{
         click: () => {
           dispatch(setReservoirUuidSelected(feature.properties.reservoir_uuid));
@@ -66,8 +70,11 @@ function MyComponent(props) {
 
   const featureSVG = (feature) => {
     const id = feature.properties.reservoir_uuid;
-    const coord = feature.geometry.coordinates[0][0];
-    const scaler = 5;
+    const coord = feature.geometry.coordinates[0];
+    const scaler = 3;
+    if (!byId[id]) {
+      return null;
+    }
     const size = byId[id].capacity * scaler;
     const volume = byId[id].volume_latest * scaler;
 
@@ -76,7 +83,11 @@ function MyComponent(props) {
     const volumeRadius = Math.sqrt(volume) * 0.5;
 
     return (
-      <SVGOverlay attributes={{ stroke: "grey" }} bounds={getBounds(coord)}>
+      <SVGOverlay
+        key={id}
+        attributes={{ stroke: "grey" }}
+        bounds={getBounds(coord)}
+      >
         <circle r={sizeRadius} cx="50%" cy="50%" fill="lightgrey" />
         <circle r={volumeRadius} cx="50%" cy="50%" fill="green" />
       </SVGOverlay>
@@ -111,7 +122,7 @@ export const MapView = () => {
     (state) => state.ui.reservoirUuidSelected
   );
   const { data, isLoading, error } = useGetReservoirsJsonQuery();
-  console.log("Data", data);
+
   const { data: dataReservoirs, isLoading: isLoadingReservoirs } =
     useGetReservoirsQuery();
 
@@ -127,7 +138,6 @@ export const MapView = () => {
   const reservoirName = dataReservoirs
     .filter((row) => row.uuid == reservoirUuidSelected)
     .map((row) => row.name_full);
-  console.log(dataReservoirs);
 
   var resView = <div></div>;
   if (reservoirUuidSelected) {
@@ -150,7 +160,7 @@ export const MapView = () => {
     >
       <MapContainer
         center={position}
-        zoom={9}
+        zoom={7}
         scrollWheelZoom={false}
         style={{ height: "300px", width: "600px" }}
       >

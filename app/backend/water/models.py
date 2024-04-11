@@ -10,6 +10,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 
+from django.contrib.gis.db import models as gis_models
+
 ArrayField = postgres_fields.ArrayField
 
 
@@ -25,7 +27,14 @@ class Reservoir(UuidModel):
     capacity = models.FloatField(null=False)
     name_full = models.CharField(max_length=100, null=True)
     province = models.CharField(max_length=100, null=True)
-    constraints = [models.UniqueConstraint(fields=["name"], name="unique_reservoir")]
+    constraints = [
+        models.UniqueConstraint(
+            fields=[
+                "name",
+            ],
+            name="unique_reservoir",
+        )
+    ]
 
 
 class RainFall(UuidModel):
@@ -107,3 +116,18 @@ class RainFallSerializer(serializers.ModelSerializer):
         if np.isnan(data["amount"]):
             data["amount"] = -1
         return data
+
+
+class Region(gis_models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    area = gis_models.MultiPolygonField()
+
+
+class ReservoirGeo(gis_models.Model):
+
+    reservoir = models.ForeignKey(
+        Reservoir, on_delete=models.CASCADE, related_name="reservoir_geo_reservoir"
+    )
+
+    geometry = gis_models.PolygonField()

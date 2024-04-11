@@ -36,6 +36,8 @@ from enum import Enum
 import json
 from django.db.models import Count
 from .utils import data
+from django.http import JsonResponse
+from .models import ReservoirGeo
 
 log = logging.getLogger(__name__)
 
@@ -190,8 +192,6 @@ def createFilterRequest(handler, serializerForData):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        log.info("RUNNING handler")
-        log.info(handler)
         states = handler(**inputs)
         # log.info("States: " + str(len(states)))
 
@@ -213,9 +213,8 @@ get_wide = createFilterRequest(data.get_wide_data, data.DailyDataSerializer)
 @authentication_classes([])
 @permission_classes([])
 def get_reservoirs_json(request):
-    with open("water/data/reservoirs.json") as f:
-        data = json.load(f)
-    return JsonResponse(data)
+    geojson = data.get_reservoirs_geojson()
+    return JsonResponse(geojson)
 
 
 def simple_string(request):

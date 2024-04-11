@@ -23,3 +23,9 @@ To the providers of public data: Thank you, but... this data already exists in a
 But I take anything I can get!
 
 The [parse.ipynb notebook](parse.ipynb) contains the code for parsing the pdf docs, turning it into a dataframe with simplified column names and some data cleaning.
+
+# Data sources
+
+- Reservoir state: https://portalrediam.cica.es/descargas?path=%2F04_RECURSOS_NATURALES%2F04_AGUAS%2F01_SUPERFICIALES%2F00_SUPERFICIALES%2FEmbalses_al_dia%2FDocumentos%2Fpdf%2Freserva
+
+- Reservoirs: https://portalrediam.cica.es/descargas?path=%2F04_RECURSOS_NATURALES%2F04_AGUAS%2F01_SUPERFICIALES%2F00_SUPERFICIALES%2FInventario_Presas_Embalses
