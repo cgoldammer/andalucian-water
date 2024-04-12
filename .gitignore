@@ -17,3 +17,5 @@ scripts/secrets.sh
 .env
 app/support/sshkeys
 app/backend/water/scripts/misc.ipynb
+data/
+analysis_scratch/

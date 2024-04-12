@@ -22,10 +22,18 @@ Here, I work with the PDF files. These can be [downloaded in bulk](https://porta
 To the providers of public data: Thank you, but... this data already exists in a parseable form in your system, if you can add this to the download folder it's easier to read and also dramatically more space efficient. 
 But I take anything I can get!
 
-The [parse.ipynb notebook](parse.ipynb) contains the code for parsing the pdf docs, turning it into a dataframe with simplified column names and some data cleaning.
+The [parse.ipynb notebook](parse.ipynb) contains the code for parsing the pdf docs, turning it into a dataframe with simplified column names and some data cleaning, which can be [downloaded from s3](https://andalucianwater.s3.amazonaws.com/data/cleaned/all_parsed_cleaned.csv).
 
-# Data sources
+# Data available
 
-- Reservoir state: https://portalrediam.cica.es/descargas?path=%2F04_RECURSOS_NATURALES%2F04_AGUAS%2F01_SUPERFICIALES%2F00_SUPERFICIALES%2FEmbalses_al_dia%2FDocumentos%2Fpdf%2Freserva
+## Raw
 
-- Reservoirs: https://portalrediam.cica.es/descargas?path=%2F04_RECURSOS_NATURALES%2F04_AGUAS%2F01_SUPERFICIALES%2F00_SUPERFICIALES%2FInventario_Presas_Embalses
+1. Reservoir state: From [portalrediam.cica.es](https://portalrediam.cica.es/descargas?path=%2F04_RECURSOS_NATURALES%2F04_AGUAS%2F01_SUPERFICIALES%2F00_SUPERFICIALES%2FEmbalses_al_dia%2FDocumentos%2Fpdf%2Freserva).
+
+2. Reservoirs: From [portalrediam.cica.es](https://portalrediam.cica.es/descargas?path=%2F04_RECURSOS_NATURALES%2F04_AGUAS%2F01_SUPERFICIALES%2F00_SUPERFICIALES%2FInventario_Presas_Embalses), downloaded to [s3](https://andalucianwater.s3.amazonaws.com/data/raw/reservoirs_geo/reservoirs.gpkg)
+
+3. Demarciaciones hidrograficas: From [Miteco](https://www.miteco.gob.es/es/cartografia-y-sig/ide/descargas/agua/demarcaciones-hidrograficas-phc-2022-2027.html)
+
+## Cleaned
+
+1. Reservoir states: We provide the cleaned tabular version on [s3](https://andalucianwater.s3.amazonaws.com/data/cleaned/all_parsed_cleaned.csv).
