@@ -9,12 +9,15 @@ from water.models import (
     Reservoir,
     ReservoirStateSerializer,
     RainFall,
+    Region,
 )
 from django.db.models import Count
 from water.utils import parse as p
 import argparse
 from django.contrib.gis.geos import Polygon, LinearRing
 import logging
+import os
+from water.utils import helpers
 
 log = logging.getLogger(__name__)
 
@@ -24,26 +27,71 @@ crs_default = "EPSG:4326"
 
 BUCKET = "andalucianwater"
 
-folder_data = "water/data_raw"
-filename_data = f"{folder_data}/all_parsed_cleaned.csv"
-filename_geo = f"{folder_data}/reservoirs.gpkg"
-replace_vals = ["embalse del ", "embalse de ", "embalse "]
-folder_data_output = "water/data"
-filename_reservoirs_output = f"{folder_data_output}/reservoirs.json"
+folder_data = "data"
+
+locations_s3 = {
+    "states_table": f"{folder_data}/cleaned/all_parsed_cleaned.csv",
+    "demarcaciones": f"{folder_data}/raw/demarcaciones",
+    "reservoirs_geo": f"{folder_data}/raw/reservoirs_geo/reservoirs.gpkg",
+}
+
+PRECISION_NUM = 0.001
 
 
-def to_django_polygon(shapely_polygon):
-    exterior_ring = LinearRing(list(shapely_polygon.exterior.coords))
-    interior_rings = [
-        LinearRing(list(interior.coords)) for interior in shapely_polygon.interiors
-    ]
-    return Polygon(exterior_ring, *interior_rings)
+def standardize_gdf(gdf_raw, precision_num=PRECISION_NUM):
+    gdf = gdf_raw.copy()
+    gdf = gdf.to_crs(crs_default)
+    gdf.geometry = gdf.geometry.simplify(precision_num)
+    return gdf
+
+
+def copy_s3(location_from, location_to, recursive=False, overwrite=False):
+    if not overwrite and os.path.exists(location_to):
+        log.info(f"File {location_to} already exists. Skipping.")
+        return
+
+    recursive_str = "--recursive" if recursive else ""
+    cmd_copy_s3 = (
+        f"aws s3 cp s3://{BUCKET}/{location_from} {location_to} {recursive_str}"
+    )
+    os.system(cmd_copy_s3)
+
+
+def get_tmp_file(name):
+    return f"/tmp/{name}"
+
+
+def get_regions_raw():
+    key = "demarcaciones"
+    folder_tmp = get_tmp_file(key)
+    copy_s3(locations_s3[key], folder_tmp, recursive=True)
+    return gpd.read_file(folder_tmp)
+
+
+def get_data_reservoirs_geo():
+    key = "reservoirs_geo"
+    location_tmp = get_tmp_file(key)
+    copy_s3(locations_s3[key], location_tmp)
+    return gpd.read_file(location_tmp)
+
+
+def get_data():
+    key = "states_table"
+    location_tmp = get_tmp_file(key)
+    copy_s3(locations_s3[key], location_tmp)
+    df = pd.read_csv(location_tmp)
+    return pick_yearly(df)
+
+
+def read_reservoir_geo():
+    gdf = get_data_reservoirs_geo()
+    name_geo = gdf[gdf.nombre.notnull()].nombre.unique()
+    names_geo_dict = {name: clean_name(name) for name in name_geo}
+    return (gdf, names_geo_dict)
 
 
 def get_df(num_states, prod):
-
     df_all_raw = get_data()
-
     log.info(df_all_raw.groupby("province").reservoir.count())
 
     capacities = (
@@ -80,8 +128,7 @@ def store_map(gdf_raw, df_matches):
     gdf["name_data"] = [dict_matches[n] for n in gdf.nombre]
     gdf["reservoir_uuid"] = [reservoirs_dict.get(name) for name in gdf["name_data"]]
 
-    gdf.geometry = gdf.geometry.simplify(100)
-    gdf = gdf.to_crs(crs_default)
+    gdf = standardize_gdf(gdf)
     gdf = gdf[gdf.reservoir_uuid.notnull()].copy()
 
     gdf_store = gdf[["nombre", "reservoir_uuid", "geometry"]].rename(
@@ -93,11 +140,12 @@ def store_map(gdf_raw, df_matches):
         reservoir.name_full = row["name"]
         reservoir.save()
         polygon_shapely = row["geometry"]
-        polygon = to_django_polygon(polygon_shapely)
-        ReservoirGeo.objects.create(reservoir=reservoir, geometry=polygon)
+        mp = helpers.to_django_multipolygon_any(polygon_shapely)
+        ReservoirGeo.objects.create(reservoir=reservoir, geometry=mp)
 
 
 def clean_name(name):
+    replace_vals = ["embalse del ", "embalse de ", "embalse "]
     for val in replace_vals:
         name = name.lower().replace(val, "")
     return name
@@ -111,19 +159,6 @@ def pick_yearly(df):
 def pick_monthly(df):
     df_monthly = df[df.ds.str.slice(8, 10) == "01"].copy()
     return df_monthly
-
-
-def get_data():
-    df = pd.read_csv(filename_data)
-    return pick_yearly(df)
-
-
-def read_reservoir_geo():
-    gdf_raw = gpd.read_file(filename_geo)
-    name_geo = gdf_raw[gdf_raw.nombre.notnull()].nombre.unique()
-    names_geo_dict = {name: clean_name(name) for name in name_geo}
-
-    return (gdf_raw, names_geo_dict)
 
 
 def diffnum_difflib(a, b):
@@ -168,6 +203,23 @@ def get_matched_names(df, names_geo_dict):
     return df_matches
 
 
+def store_regions():
+    gdf = get_regions_raw()
+
+    gdf = standardize_gdf(gdf)
+
+    renamer = {"Nombre": "name"}
+    gdf_store = gdf.rename(columns=renamer)[["name", "geometry"]]
+
+    def get_region(row):
+        mp = helpers.to_django_multipolygon_any(row["geometry"])
+        return Region(name=row["name"], geometry=mp)
+
+    Region.objects.all().delete()
+    regions_to_save = gdf_store.apply(get_region, axis=1)
+    Region.objects.bulk_create(regions_to_save.tolist())
+
+
 def store_to_db(df):
     ReservoirState.objects.all().delete()
     Reservoir.objects.all().delete()
@@ -193,9 +245,7 @@ def store_to_db(df):
     Reservoir.objects.bulk_create(reservoirs_to_create)
 
     log.info("Storing states")
-
     reservoirs_data = Reservoir.objects.all()
-
     reservoir_for_name = {reservoir.name: reservoir for reservoir in reservoirs_data}
 
     def get_reservoir_state(row):
@@ -221,7 +271,7 @@ def store_to_db(df):
 
     reservoir_names = reservoirs.values_list("name", flat=True)
 
-    def get_rainfaill(row):
+    def get_rainfall(row):
         return RainFall(
             date=row["ds"],
             reservoir=reservoir_for_name[row["reservoir"]],
@@ -232,7 +282,7 @@ def store_to_db(df):
 
     rainfalls_to_store = (
         df_all[df_all.reservoir.isin(reservoir_names)]
-        .apply(get_rainfaill, axis=1)
+        .apply(get_rainfall, axis=1)
         .tolist()
     )
 
@@ -247,6 +297,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--env", type=str, default="dev")
         parser.add_argument("--num", type=int, default=10)
+        parser.add_argument("--overwrite-s3", type=bool, default=False)
         parser.add_argument(
             "--handle-map", action=argparse.BooleanOptionalAction, default=True
         )
@@ -271,3 +322,4 @@ class Command(BaseCommand):
             (gdf_raw, names_geo_dict) = read_reservoir_geo()
             df_matches = get_matched_names(df_store, names_geo_dict)
             store_map(gdf_raw, df_matches)
+            store_regions()

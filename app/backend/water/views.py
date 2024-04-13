@@ -217,5 +217,14 @@ def get_reservoirs_json(request):
     return JsonResponse(geojson)
 
 
+# Provide the file in water/data/reservoirs.json as a json endpoint
+@api_view(["GET"])
+@authentication_classes([])
+@permission_classes([])
+def get_regions_json(request):
+    geojson = data.get_regions_geojson()
+    return JsonResponse(geojson)
+
+
 def simple_string(request):
     return HttpResponse("Simple string")

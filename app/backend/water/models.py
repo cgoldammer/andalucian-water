@@ -121,7 +121,8 @@ class RainFallSerializer(serializers.ModelSerializer):
 class Region(gis_models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
-    area = gis_models.MultiPolygonField()
+    geometry = gis_models.MultiPolygonField()
+    constraints = [models.UniqueConstraint(fields=["name"], name="unique_region_name")]
 
 
 class ReservoirGeo(gis_models.Model):
@@ -129,5 +130,4 @@ class ReservoirGeo(gis_models.Model):
     reservoir = models.ForeignKey(
         Reservoir, on_delete=models.CASCADE, related_name="reservoir_geo_reservoir"
     )
-
-    geometry = gis_models.PolygonField()
+    geometry = gis_models.MultiPolygonField()

@@ -33,7 +33,7 @@ export const apiSlice = createApi({
     }),
     logout: builder.mutation({
       // invalidatesTags: ["User", "IngredientSet"],
-      query: (data) => {
+      query: () => {
         return {
           url: "/logout",
           method: "POST",
@@ -50,7 +50,7 @@ export const apiSlice = createApi({
       providesTags: ["User"],
     }),
     getLoginTest: builder.query({
-      query: (params) => {
+      query: () => {
         return {
           url: "/login_test",
           method: "GET",
@@ -105,7 +105,15 @@ export const apiSlice = createApi({
     getReservoirsJson: builder.query({
       query: () => {
         return {
-          url: "/get_reservoirs_json",
+          url: "/get_reservoirs_geojson",
+          method: "GET",
+        };
+      },
+    }),
+    getRegionsJson: builder.query({
+      query: () => {
+        return {
+          url: "/get_regions_geojson",
           method: "GET",
         };
       },
@@ -123,5 +131,6 @@ export const {
   useGetReservoirStatesQuery,
   useGetDailyDataQuery,
   useGetReservoirsJsonQuery,
+  useGetRegionsJsonQuery,
   util,
 } = apiSlice;

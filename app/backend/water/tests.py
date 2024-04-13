@@ -1,6 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from water.models import Reservoir, ReservoirState
+from water.models import Reservoir, ReservoirState, Region, ReservoirGeo
 from water.utils import helpers
 from water.fixtures import setup_script
 from django.contrib.auth.models import User
@@ -107,21 +107,6 @@ class ReservoirTestCase(AppTest):
         reservoirs_raw = Reservoir.objects.all()
         self.assertTrue(len(reservoirs) == len(reservoirs_raw))
 
-        # first_reservoir = reservoirs[0]
-        # states_for_first_reservoir = ReservoirState.objects.filter(
-        #     reservoir=first_reservoir
-        # )
-        # print("RESPOINSE")
-        # print(reservoirs[0].uuid, reservoirs[0].num_states, reservoirs[0].volume_latest)
-        # latest_state = states_for_first_reservoir.latest("date")
-        # first_reservoir_in_response = [
-        #     r for r in reservoirs if r.uuid == str(first_reservoir.uuid)
-        # ][0]
-
-        # self.assertTrue(
-        #     first_reservoir_in_response.volume_latest == latest_state.volume
-        # )
-
     def testGetReservoirStates(self):
         setup_script.fill_simple()
         reservoirs = Reservoir.objects.all()
@@ -202,3 +187,20 @@ class ReservoirTestCase(AppTest):
         json_parsed = response.json()
 
         assert len(json_parsed) > 0
+
+
+class GeoTestCase(AppTest):
+    def setUp(self):
+        super().setUp()
+        setup_script.fill_simple()
+        setup_script.create_regions()
+
+    def test_reservoir_geo(self):
+        geos = ReservoirGeo.objects.all()
+        gj = data.get_reservoirs_geojson()
+        assert len(gj["features"]) == len(geos)
+
+    def test_regions(self):
+        geos = Region.objects.all()
+        gj = data.get_regions_geojson()
+        assert len(gj["features"]) == len(geos)

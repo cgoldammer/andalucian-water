@@ -6,6 +6,7 @@ from ..models import (
     ReservoirSerializer,
     ReservoirStateSerializer,
     RainFallSerializer,
+    Region,
 )
 from django.db.models import Count
 import logging
@@ -137,29 +138,59 @@ class DailyDataSerializer(serializers.Serializer):
         pass
 
 
-def get_reservoirs_geojson():
-
-    reservoirs_geo = ReservoirGeo.objects.all()
-
-    features = []
-    for reservoir_geo in reservoirs_geo:
-        reservoir = reservoir_geo.reservoir
-        feature = {
+def query_to_geojson(query, properties_getter):
+    def get_feature(geo):
+        return {
             "type": "Feature",
             "geometry": {
-                "type": "Polygon",
-                "coordinates": reservoir_geo.geometry.coords[0],
+                "type": "MultiPolygon",
+                "coordinates": geo.geometry.coords,
             },
-            "properties": {
-                "name": reservoir.name,
-                "name_full": reservoir.name_full,
-                "reservoir_uuid": str(reservoir.uuid),
-            },
+            "properties": properties_getter(geo),
         }
-        features.append(feature)
+
+    features = [get_feature(geo) for geo in query]
     geojson = {
         "type": "FeatureCollection",
         "features": features,
     }
 
     return geojson
+
+
+def get_regions_geojson(filter_to_reservoir=True):
+    regions_geo = Region.objects.all()
+
+    if filter_to_reservoir:
+        reservoirs = Reservoir.objects.all()
+
+        def get_reservoirs_in_region(region):
+            return reservoirs.filter(
+                reservoir_geo_reservoir__geometry__contained=region.geometry
+            )
+
+        regions_geo = [
+            region for region in regions_geo if get_reservoirs_in_region(region)
+        ]
+
+    def properties_getter(geo):
+        return {
+            "name": geo.name,
+            "uuid": str(geo.uuid),
+        }
+
+    return query_to_geojson(regions_geo, properties_getter)
+
+
+def get_reservoirs_geojson():
+    reservoirs_geo = ReservoirGeo.objects.all()
+
+    def properties_getter(geo):
+        reservoir = geo.reservoir
+        return {
+            "name": reservoir.name,
+            "name_full": reservoir.name_full,
+            "reservoir_uuid": str(reservoir.uuid),
+        }
+
+    return query_to_geojson(reservoirs_geo, properties_getter)

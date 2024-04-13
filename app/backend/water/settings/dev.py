@@ -53,7 +53,6 @@ logging.config.dictConfig(LOGGING)
 
 db_used = os.environ.get("DB_USED", "local")
 db_password = os.environ.get("POSTGRES_PASSWORD")
-print(db_used)
 
 database_confs = {
     "local": {
@@ -74,7 +73,5 @@ database_confs = {
 DATABASES = {
     "default": database_confs[db_used],
 }
-
-print(DATABASES)
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
