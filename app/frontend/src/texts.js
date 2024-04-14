@@ -8,9 +8,8 @@ the long-term trends.
 `;
 
 const projectWarnings = `
-April 8, 2024: This is now publicly available, but not fully released.
-We believe numbers are sensible,
-but the parsing is tricky. If you find errors, let us know!
+April 8, 2024: Data is not fully validated, 
+so don't share results. If you find errors, let us know!
 `;
 
 const projectFeatures = [
@@ -26,10 +25,11 @@ const projectFeatures = [
   },
 ];
 
+const featuresAdded = ["New feature (April 13, 2024): Hydrographic regions"];
+
 const featuresComing = [
   "Daily resolution for reservoir levels",
   "Understanding the impact of current investments",
-  "Hydrographic regions",
   "Spanish language support",
 ];
 
@@ -51,6 +51,8 @@ export const texts = {
   projectFeatures: projectFeatures,
   featuresComing: featuresComing,
   featuresComingHeader: "Features coming up:",
+  featuresAdded: featuresAdded,
+  featuresAddedHeader: "New features:",
   timeOption: "Time Option",
   projectWarnings: projectWarnings,
   descriptionGap: descriptionGap,

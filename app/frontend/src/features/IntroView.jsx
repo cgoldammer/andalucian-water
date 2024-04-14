@@ -48,7 +48,14 @@ export const IntroView = () => (
     </CenteredGrid>
     <Grid md={4}>
       <CenteredGrid xs={12}>
-        <Alert severity="warning">{texts.projectWarnings}</Alert>
+        <Alert severity="warning" style={{ margin: "10px" }}>
+          {texts.projectWarnings}
+        </Alert>
+        {texts.featuresAdded.map((feature) => (
+          <Alert severity="success" key={feature}>
+            {feature}
+          </Alert>
+        ))}
         <Typography
           role="description"
           style={{ textAlign: "justify", padding: "20px" }}
@@ -63,7 +70,6 @@ export const IntroView = () => (
         ></Typography>
       </CenteredGrid>
     </Grid>
-
     <Grid md={6}>
       <CenteredGrid xs={12}>
         {texts.projectFeatures.map((feature) => (
@@ -71,5 +77,21 @@ export const IntroView = () => (
         ))}
       </CenteredGrid>
     </Grid>
+    <CenteredGrid xs={12}>
+      <Typography variant="h2">{texts.featuresComingHeader}</Typography>
+    </CenteredGrid>
+    <CenteredGrid xs={12}>
+      {texts.featuresComing.map((feature) => (
+        <Grid
+          key={feature}
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          xs={12}
+        >
+          <Typography variant="body1">{feature}</Typography>
+        </Grid>
+      ))}
+    </CenteredGrid>
   </Grid>
 );
