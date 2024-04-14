@@ -1,0 +1,7 @@
+
+echo "Frontend"
+cd $CD_WATER/app/frontend && npm run test
+
+echo "Backend"
+cd $CD_WATER/app/backend;
+DB_USED=local DJANGO_SETTINGS_MODULE=water.settings.dev python ./manage.py test water

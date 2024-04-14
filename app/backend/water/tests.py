@@ -202,5 +202,5 @@ class GeoTestCase(AppTest):
 
     def test_regions(self):
         geos = Region.objects.all()
-        gj = data.get_regions_geojson()
+        gj = data.get_regions_geojson(filter_to_reservoir=False)
         assert len(gj["features"]) == len(geos)
