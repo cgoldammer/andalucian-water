@@ -25,7 +25,10 @@ const projectFeatures = [
   },
 ];
 
-const featuresAdded = ["New feature (April 13, 2024): Hydrographic regions"];
+const featuresAdded = [
+  "April 13, 2024: Added Hydrographic regions",
+  "April 16, 2024: Improved shortfall predictions",
+];
 
 const featuresComing = [
   "Daily resolution for reservoir levels",
@@ -35,7 +38,8 @@ const featuresComing = [
 
 const descriptionGap = `
 Given the relative rainfall, we can predict the shortfall, which is
-the expected reduction in overall reservoir levels (all in HM3).`;
+the expected reduction in overall reservoir levels (all in HM3). For now, we are using
+a simple cubic prediction, but are working on making this more precise.`;
 
 const descriptionScatter = `
 The more it rains (as % of historical average, x-axis), the more the
@@ -63,6 +67,16 @@ export const texts = {
   labelRainFall: "Rainfall (mm)",
   labelFillRate: "Annual change in fill as % of full capacity",
   rainSlider: "Rain (% of historical)",
+  labelYAxisTotalChange: "Change (HM3/year)",
+  titleRainfallAll: "Change given the rainfall",
+  getLevelsTextRel: (direction, value) => {
+    const directionString = direction > 0 ? "increase" : "decrease";
+    return `Reservoir levels ${directionString} by ${value} of capacity`;
+  },
+  getLevelsTextAbs: (direction, value) => {
+    const directionString = direction > 0 ? "Shortfall" : "Increase";
+    return `${directionString} of ${value} HM3/year`;
+  },
 };
 
 export const positionAndalucia = [36.7213, -4.4214];

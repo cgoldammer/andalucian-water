@@ -4,8 +4,6 @@ import { TimeOptions } from "../../helpers/helpers";
 import {
   getTableData,
   addShortfall,
-  dataByProvince,
-  dataByRegion,
   addReservoirData,
   aggTypes,
 } from "../../helpers/data";
@@ -18,8 +16,8 @@ import { valueFormatter } from "../../helpers/helpers";
 import PropTypes from "prop-types";
 import { texts, namesRegionsShort } from "../../texts";
 import { ToggleButton, ToggleButtonGroup } from "@mui/material";
-
-const rainFallDefault = 0.5;
+import { axisClasses } from "@mui/x-charts/ChartsAxis";
+const rainFallDefault = 0.6;
 
 export const GapChart = () => {
   const [rainfallExpected, setRainfallExpected] =
@@ -40,7 +38,7 @@ export const GapChart = () => {
       <Grid display="flex" justifyContent="center" alignItems="center" xs={3}>
         <Slider
           type="range"
-          min={0.0}
+          min={0.3}
           max={1.2}
           step={0.1}
           marks
@@ -61,8 +59,8 @@ export const GapChart = () => {
 };
 
 const getAll = (data, aggFunction) => {
-  // Range from 0 to 1.2, steps of 0.1
-  const rainfalls = Array.from({ length: 13 }, (_, i) => i / 10);
+  // Range from 0.3 to 1.2, steps of 0.1
+  const rainfalls = Array.from({ length: 10 }, (_, i) => 0.3 + i * 0.1);
   const getAggForRainFall = (rainfallExpected) => {
     const dataAdded = addShortfall(data, rainfallExpected).filter(
       (row) => new Date(row.date).getFullYear() == 2023
@@ -135,8 +133,18 @@ export const GapChartDisplay = (props) => {
     0
   );
 
+  const totalCapacity = dataCleanedLatestYear.reduce(
+    (acc, row) => acc + row.capacity,
+    0
+  );
+
+  const totalRelChange = totalChange / totalCapacity;
+
   const totalChangeString = totalChange < 0 ? "Shortfall" : "Increase";
   const totalChangeAbs = totalChange < 0 ? -totalChange : totalChange;
+
+  const relChangeString = totalRelChange < 0 ? "decrease" : "increase";
+  const relChangeAbs = totalRelChange < 0 ? -totalRelChange : totalRelChange;
 
   const seriesAggNames = seriesGrouped.map((row) =>
     namesRegionsShort[row.group] != undefined
@@ -187,13 +195,27 @@ export const GapChartDisplay = (props) => {
       width={600}
       height={300}
       slotProps={{ legend: { hidden: true } }}
+      yAxis={[
+        {
+          scaleType: "linear",
+          min: aggData.minAxis,
+          max: aggData.maxAxis,
+          label: texts.labelYAxisTotalChange,
+        },
+      ]}
       xAxis={[
         {
           scaleType: "band",
           data: dataAll.map((data) => data.rainfall),
           valueFormatter: valueFormatter,
+          label: texts.labelRainFallYear,
         },
       ]}
+      sx={{
+        [`.${axisClasses.left} .${axisClasses.label}`]: {
+          transform: "translate(-25px, 0)",
+        },
+      }}
     />
   );
 
@@ -207,7 +229,24 @@ export const GapChartDisplay = (props) => {
         sx={{ margin: "20px" }}
       >
         <Typography variant="h1">
-          {totalChangeString} of {totalChangeAbs.toFixed(0)} HM3/year
+          {texts.getLevelsTextAbs(
+            totalChangeAbs > 0,
+            totalChangeAbs.toFixed(0)
+          )}
+        </Typography>
+      </Grid>
+      <Grid
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        xs={12}
+        sx={{ margin: "20px" }}
+      >
+        <Typography variant="h3">
+          {texts.getLevelsTextRel(
+            totalChangeAbs > 0,
+            valueFormatter(relChangeAbs)
+          )}
         </Typography>
       </Grid>
       <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
@@ -216,13 +255,23 @@ export const GapChartDisplay = (props) => {
       <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
         <BarChart
           series={[seriesAgg]}
-          width={800}
+          width={600}
           height={300}
           xAxis={[{ scaleType: "band", data: seriesAggNames }]}
           yAxis={[
-            { scaleType: "linear", min: aggData.minAxis, max: aggData.maxAxis },
+            {
+              scaleType: "linear",
+              min: aggData.minAxis,
+              max: aggData.maxAxis,
+              label: texts.labelYAxisTotalChange,
+            },
           ]} // Set the yAxis range to -500, 500
           slotProps={{ legend: { hidden: true } }}
+          sx={{
+            [`.${axisClasses.left} .${axisClasses.label}`]: {
+              transform: "translate(-10px, 0)",
+            },
+          }}
         />
       </Grid>
       <Grid
@@ -242,6 +291,9 @@ export const GapChartDisplay = (props) => {
             {texts.analysisName}
           </a>
         </Typography>
+      </Grid>
+      <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
+        <Typography variant="h2">{texts.titleRainfallAll}</Typography>
       </Grid>
       <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
         {lineChart}

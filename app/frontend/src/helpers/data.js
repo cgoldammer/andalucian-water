@@ -175,19 +175,26 @@ https://github.com/cgoldammer/andalucian-water/blob/master/app/backend/water/scr
 */
 
 const paramsPred = {
-  Intercept: -0.3,
-  volume_rel_lag: 1.0,
-  rainfall_rel: 0.3,
-  "I((rainfall_rel + 1) ** 0.5)": 0,
-  "I((rainfall_rel + 1.5) ** 0.5)": 0,
-  "rainfall_rel:volume_rel_lag": 0,
+  Intercept: -0.07592879513010331,
+  volume_rel_lag: 0.9654619462999527,
+  rainfall_rel: -0.21348097724475792,
+  "I(rainfall_rel ** 2)": 0.634333167851502,
+  "I(rainfall_rel ** 3)": -0.1829222770794317,
+  "rainfall_rel:volume_rel_lag": -0.2283257327468397,
 };
 
 export const getPredictions = (row, rainfallExpected) => {
   const capacity = row.capacity;
   const volumeLag = row.volumeLagged;
   const volumeLagRel = volumeLag / capacity;
-  const predicted_rel = volumeLagRel - 0.3 + 0.3 * rainfallExpected;
+  const predicted_rel =
+    paramsPred["Intercept"] +
+    paramsPred["volume_rel_lag"] * volumeLagRel +
+    paramsPred["rainfall_rel"] * rainfallExpected +
+    paramsPred["I(rainfall_rel ** 2)"] * Math.pow(rainfallExpected, 2) +
+    paramsPred["I(rainfall_rel ** 3)"] * Math.pow(rainfallExpected, 3) +
+    paramsPred["rainfall_rel:volume_rel_lag"] *
+      (volumeLagRel * rainfallExpected);
   const change_rel = predicted_rel - volumeLagRel;
   const change = change_rel * capacity;
 
@@ -251,10 +258,10 @@ const dataByField = (data, getter, outcome = "change") => {
     if (existing) {
       existing[outcome] += row[outcome];
     } else {
-      const vals = {
+      result.push({
         group: getter(row),
-      };
-      (vals[outcome] = row[outcome]), result.push(vals);
+        [outcome]: row[outcome],
+      });
     }
     return result;
   }, []);
@@ -271,13 +278,13 @@ export const aggTypes = {
   province: {
     name: "Province",
     aggFunction: dataByProvince,
-    minAxis: -1200,
-    maxAxis: 700,
+    minAxis: -400,
+    maxAxis: 800,
   },
   region: {
     name: "Region",
     aggFunction: dataByRegion,
-    minAxis: -2500,
-    maxAxis: 1300,
+    minAxis: -1000,
+    maxAxis: 1800,
   },
 };

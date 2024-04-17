@@ -1,4 +1,4 @@
-import { ScatterChart } from "@mui/x-charts/ScatterChart";
+import { ScatterChart } from "@mui/x-charts";
 import Typography from "@mui/material/Typography";
 import { useGetReservoirsQuery, useGetDailyDataQuery } from "../api/apiSlice";
 import { TimeOptions, valueFormatter } from "../../helpers/helpers";

@@ -16,6 +16,7 @@ import { Marker, Popup, SVGOverlay } from "react-leaflet";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import { CenteredGrid } from "../helpers/helpersUI";
+import { Typography } from "@mui/material";
 
 // malaga, spain
 const position = [37.4213, -4.816];
@@ -45,8 +46,6 @@ const getLabel = (properties, dataReservoirs) => {
     return "No data";
   }
   const dataReservoir = dataReservoirs[id];
-  console.log("Data Reservoir: ", dataReservoir);
-  console.log("Properties: ", properties);
   const regionText =
     dataReservoir.region != undefined ? ` (${dataReservoir.region.name})` : "";
 
@@ -124,6 +123,7 @@ const defaultShowValues = ["reservoir", "region"];
 
 export const MapView = () => {
   const [showValues, setShowValues] = React.useState(defaultShowValues);
+  const [selectedRegion, setSelectedRegion] = React.useState(null);
   const reservoirUuidSelected = useSelector(
     (state) => state.ui.reservoirUuidSelected
   );
@@ -142,8 +142,6 @@ export const MapView = () => {
   if (isLoadingGeo || isLoadingReservoirs || isLoadingRegions) {
     return <div>Loading...</div>;
   }
-
-  console.log("Reservoir ");
 
   const toggleButtonGroup = (
     <ToggleButtonGroup value={showValues} onChange={handleToggle}>
@@ -166,31 +164,61 @@ export const MapView = () => {
     );
   }
 
+  const regionView =
+    isShow("region") && selectedRegion ? (
+      <div>
+        <Typography variant="h4">Region: {selectedRegion}</Typography>
+      </div>
+    ) : (
+      <div></div>
+    );
+
   return (
     <Grid container justifyContent="center" alignItems="center" xs={12}>
       <CenteredGrid style={{ margin: "20px" }}>
         <Grid xs={12}>{toggleButtonGroup}</Grid>
       </CenteredGrid>
-      <MapContainer
-        center={position}
-        zoom={7}
-        scrollWheelZoom={false}
-        style={{ height: "300px", width: "600px", opacity: 0.8 }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {isShow("reservoir") && (
-          <div>
-            <GeoJSON data={dataGeo} />
-            <MyComponent data={dataGeo} dataReservoirs={dataReservoirs} />
-          </div>
-        )}
-        {isShow("region") && (
-          <GeoJSON style={{ opacity: 0.2 }} data={dataRegions} />
-        )}
-      </MapContainer>
+      <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
+        <MapContainer
+          center={position}
+          zoom={7}
+          scrollWheelZoom={false}
+          style={{ height: "300px", width: "600px", opacity: 0.9 }}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {isShow("reservoir") && (
+            <div>
+              <GeoJSON data={dataGeo} style={{ color: "green" }} />
+              <MyComponent data={dataGeo} dataReservoirs={dataReservoirs} />
+            </div>
+          )}
+          {isShow("region") && (
+            <GeoJSON
+              data={dataRegions}
+              style={(feature) => ({
+                fillOpacity: 0.1,
+                opacity: 0.2,
+                color:
+                  feature.properties.name == selectedRegion ? "blue" : "green",
+              })}
+              onEachFeature={(feature, layer) => {
+                layer.on({
+                  mouseover: () => {
+                    setSelectedRegion(feature.properties.name);
+                  },
+                });
+              }}
+            />
+          )}
+        </MapContainer>
+      </Grid>
+      <CenteredGrid style={{ margin: "20px" }}>
+        <Grid xs={12}>{regionView}</Grid>
+      </CenteredGrid>
+
       {isShow("reservoir") && resView}
     </Grid>
   );

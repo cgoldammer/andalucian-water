@@ -5,6 +5,7 @@ import "@testing-library/jest-dom";
 import { render } from "@testing-library/react";
 import { addMockDataTest } from "../../helpers/fixture";
 import React from "react";
+import { texts } from "../../texts";
 
 test("It should print the reservoir UUid", () => {
   expect(true).toBe(true);
@@ -21,9 +22,11 @@ store.dispatch(setMatchResponseSeconds(0));
 jest.mock("@mui/x-charts", () => ({
   BarChart: jest.fn().mockImplementation(({ children }) => children),
   LineChart: jest.fn().mockImplementation(({ children }) => children),
+  ScatterChart: jest.fn().mockImplementation(({ children }) => children),
 }));
 
 import { GapChartDisplay } from "./GapChart";
+import { GapView } from "./GapView";
 
 const db = getDB();
 addMockDataTest(db, 2, 2);
@@ -53,6 +56,10 @@ jest.mock("../../features/api/apiSlice", () => ({
   useGetDailyDataQuery: jest.fn(() => mockValDailyData),
 }));
 
+jest.mock("@mui/x-charts/ChartsAxis", () => ({
+  axisClasses: jest.fn().mockReturnValue({}),
+}));
+
 beforeAll(() => {
   fakeServer.listen();
 });
@@ -64,7 +71,7 @@ afterAll(() => fakeServer.close());
 const setup = () => {
   const { asFragment, getByText } = render(
     <Provider store={store}>
-      <GapChartDisplay rainfallExpected={0.5} />
+      <GapView />
     </Provider>
   );
   return {
@@ -73,8 +80,10 @@ const setup = () => {
   };
 };
 
-test("The fragment should contain a header 'Shortfall'", () => {
+test("The fragment should contain a description for the slider", () => {
   const { getByText } = setup();
 
-  expect(getByText("Shortfall")).toBeInTheDocument();
+  const expectedText = texts.rainSlider;
+
+  expect(getByText(expectedText)).toBeInTheDocument();
 });
