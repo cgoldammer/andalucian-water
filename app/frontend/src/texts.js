@@ -56,9 +56,21 @@ export const texts = {
   timeOption: "Time Option",
   projectWarnings: projectWarnings,
   descriptionGap: descriptionGap,
-  analysisName: "Analysis notebook",
+  analysisName: "See Analysis notebook for details.",
   descriptionScatter: descriptionScatter,
   titleScatter: "The input: Rainfall and fill rates",
+  labelRainFallYear: "Yearly rainfall (% of historical average)",
+  labelRainFall: "Rainfall (mm)",
+  labelFillRate: "Annual change in fill as % of full capacity",
+  rainSlider: "Rain (% of historical)",
 };
 
 export const positionAndalucia = [36.7213, -4.4214];
+
+export const namesRegionsShort = {
+  Guadalquivir: "Guadalquivir",
+  "Cuencas Mediterráneas Andaluzas": "Cuencas M.",
+  "Guadalete Y Barbate": "Guad. Barb.",
+  "Tinto, Odiel Y Piedras": "Tinto Odiel Piedras",
+  Guadiana: "Guadiana",
+};

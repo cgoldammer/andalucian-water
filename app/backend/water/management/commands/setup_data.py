@@ -22,7 +22,7 @@ from water.utils import helpers
 log = logging.getLogger(__name__)
 
 ds_start = "2012-09-01"
-province_default = "malaga"
+provinces_default = ["malaga", "cadiz"]
 crs_default = "EPSG:4326"
 
 BUCKET = "andalucianwater"
@@ -100,7 +100,7 @@ def get_df(num_states, prod):
         .reset_index()
     )
     if not prod:
-        capacities = capacities[capacities.province == province_default].copy()
+        capacities = capacities[capacities.province.isin(provinces_default)].copy()
     capacities = capacities.sort_values("last", ascending=False)
     df_store = df_all_raw[df_all_raw.reservoir.isin(capacities.reservoir.unique())]
     df_store = df_store[df_store.ds >= ds_start].copy()
@@ -203,6 +203,12 @@ def get_matched_names(df, names_geo_dict):
     return df_matches
 
 
+def region_name_cleaned(region_name):
+    # The input is something like CUENCAS MEDITERRÁNEAS
+    # Turn it into Cuencas Mediterráneas
+    return region_name.title()
+
+
 def store_regions():
     gdf = get_regions_raw()
 
@@ -213,11 +219,24 @@ def store_regions():
 
     def get_region(row):
         mp = helpers.to_django_multipolygon_any(row["geometry"])
-        return Region(name=row["name"], geometry=mp)
+        return Region(name=region_name_cleaned(row["name"]), geometry=mp)
 
     Region.objects.all().delete()
     regions_to_save = gdf_store.apply(get_region, axis=1)
     Region.objects.bulk_create(regions_to_save.tolist())
+
+    reservoir_geos = ReservoirGeo.objects.all()
+    regions = Region.objects.all()
+
+    # For each reservoir geo, get the region that contains it
+    # and store this region in the reservoir
+    for reservoir_geo in reservoir_geos:
+        for region in regions:
+            if region.geometry.contains(reservoir_geo.geometry):
+                reservoir = reservoir_geo.reservoir
+                reservoir.region = region
+                reservoir.save()
+                break
 
 
 def store_to_db(df):

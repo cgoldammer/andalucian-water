@@ -62,6 +62,9 @@ export const theme = createTheme({
     h3: {
       fontSize: "1.25rem",
     },
+    h4: {
+      fontSize: "1.1rem",
+    },
   },
   components: {
     // Name of the component

@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { listToDictByKey } from "../../helpers/helpers";
 const url = process.env.BACKENDURL || "http://localhost:9999/";
 
 export const apiSlice = createApi({
@@ -65,6 +66,7 @@ export const apiSlice = createApi({
           method: "GET",
         };
       },
+      transformResponse: (response) => listToDictByKey(response, "uuid"),
       providesTags: ["Reservoir"],
     }),
     getRainfall: builder.query({
@@ -92,7 +94,6 @@ export const apiSlice = createApi({
     getDailyData: builder.query({
       query: (data) => {
         const { isFirstOfYear, reservoirUuids, startDate, endDate } = data;
-
         const uuidsJoined = reservoirUuids.join(",");
         const url = `/get_wide/?is_first_of_year=${isFirstOfYear}&reservoir_uuids=${uuidsJoined}&start_date=${startDate}&end_date=${endDate}`;
         return {

@@ -9,6 +9,13 @@ export const isDev = runMode == RUNMODE_DEV || runMode == RUNMODE_MOCK;
 
 // export const theme = responsiveFontSizes(theme1);
 
+export const listToDictByKey = (xList, key) => {
+  return xList.reduce((acc, x) => {
+    acc[x[key]] = x;
+    return acc;
+  }, {});
+};
+
 export const getRange = (max) => Array.from(Array(max), (n, index) => index);
 
 export const getRandomSample = (arr, size) => {
@@ -89,3 +96,5 @@ export const fetchTestSuite = async () => {
   );
   return res;
 };
+
+export const valueFormatter = (value) => `${(value * 100).toFixed(0)}%`;

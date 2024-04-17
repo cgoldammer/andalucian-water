@@ -34,5 +34,6 @@ module.exports = {
     beforeAll: true,
     afterEach: true,
     afterAll: true,
+    it: true,
   },
 };

@@ -25,11 +25,11 @@ export const getYAxisWater = (timeOption) => {
 export const timeOptionData = {
   [TimeOptions.DAY]: {
     id: "rain",
-    label: "Rainfall",
+    label: texts.labelRainFall,
   },
   [TimeOptions.YEAR]: {
     id: "rain",
-    label: "Rainfall Cumulative (% of historical)",
+    label: texts.labelRainFallYear,
   },
 };
 

@@ -39,16 +39,21 @@ const getBounds = (coordinates) => {
   ];
 };
 
-const getLabel = (properties, byId) => {
+const getLabel = (properties, dataReservoirs) => {
   const id = properties.reservoir_uuid;
-  if (!byId[id]) {
+  if (!dataReservoirs[id]) {
     return "No data";
   }
+  const dataReservoir = dataReservoirs[id];
+  console.log("Data Reservoir: ", dataReservoir);
+  console.log("Properties: ", properties);
+  const regionText =
+    dataReservoir.region != undefined ? ` (${dataReservoir.region.name})` : "";
 
-  const latestVolume = byId[id].volume_latest;
-  const capacity = byId[id].capacity;
+  const latestVolume = dataReservoir.volume_latest;
+  const capacity = dataReservoir.capacity;
   const fillRate = latestVolume / capacity;
-  return `${properties.name_full}: ${(fillRate * 100).toFixed(
+  return `${properties.name_full} ${regionText}: ${(fillRate * 100).toFixed(
     0
   )}% filled - ${latestVolume.toFixed(2)} m3 / ${capacity.toFixed(2)} m3`;
 };
@@ -56,7 +61,7 @@ const getLabel = (properties, byId) => {
 const getDefaultPoint = (feature) => feature.geometry.coordinates[0][0][0];
 
 function MyComponent(props) {
-  const { data, byId } = props;
+  const { data, dataReservoirs } = props;
   const dispatch = useDispatch();
 
   const markers = data.features.map((feature) => (
@@ -70,7 +75,7 @@ function MyComponent(props) {
       }}
       opacity={1} // Add this line to make the marker invisible
     >
-      <Popup>{getLabel(feature.properties, byId)}</Popup>
+      <Popup>{getLabel(feature.properties, dataReservoirs)}</Popup>
     </Marker>
   ));
 
@@ -78,11 +83,11 @@ function MyComponent(props) {
     const id = feature.properties.reservoir_uuid;
     const coord = getDefaultPoint(feature);
     const scaler = 3;
-    if (!byId[id]) {
+    if (!dataReservoirs[id]) {
       return null;
     }
-    const size = byId[id].capacity * scaler;
-    const volume = byId[id].volume_latest * scaler;
+    const size = dataReservoirs[id].capacity * scaler;
+    const volume = dataReservoirs[id].volume_latest * scaler;
 
     /* The sizeRadius and volumeRadius are set so that the circles occupy the area of the size and volume correspondingly */
     const sizeRadius = Math.sqrt(size) * 0.5;
@@ -112,15 +117,7 @@ function MyComponent(props) {
 
 MyComponent.propTypes = {
   data: PropTypes.object.isRequired,
-  byId: PropTypes.object.isRequired,
-};
-
-const reservorDictByUuid = (reservoirList) => {
-  const res = reservoirList.reduce((acc, row) => {
-    acc[row.uuid] = row;
-    return acc;
-  }, {});
-  return res;
+  dataReservoirs: PropTypes.object.isRequired,
 };
 
 const defaultShowValues = ["reservoir", "region"];
@@ -146,7 +143,7 @@ export const MapView = () => {
     return <div>Loading...</div>;
   }
 
-  const byId = reservorDictByUuid(dataReservoirs);
+  console.log("Reservoir ");
 
   const toggleButtonGroup = (
     <ToggleButtonGroup value={showValues} onChange={handleToggle}>
@@ -157,12 +154,9 @@ export const MapView = () => {
 
   const isShow = (value) => showValues.includes(value);
 
-  const reservoirName = dataReservoirs
-    .filter((row) => row.uuid == reservoirUuidSelected)
-    .map((row) => row.name_full);
-
   var resView = <div></div>;
   if (reservoirUuidSelected) {
+    const reservoirName = dataReservoirs[reservoirUuidSelected].name_full;
     resView = (
       <ReservoirView
         reservoirUuid={reservoirUuidSelected}
@@ -190,7 +184,7 @@ export const MapView = () => {
         {isShow("reservoir") && (
           <div>
             <GeoJSON data={dataGeo} />
-            <MyComponent data={dataGeo} byId={byId} />
+            <MyComponent data={dataGeo} dataReservoirs={dataReservoirs} />
           </div>
         )}
         {isShow("region") && (

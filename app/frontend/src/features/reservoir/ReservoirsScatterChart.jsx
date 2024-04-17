@@ -1,7 +1,7 @@
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import Typography from "@mui/material/Typography";
 import { useGetReservoirsQuery, useGetDailyDataQuery } from "../api/apiSlice";
-import { TimeOptions } from "../../helpers/helpers";
+import { TimeOptions, valueFormatter } from "../../helpers/helpers";
 import React from "react";
 import { getTableData } from "../../helpers/data";
 import Grid from "@mui/material/Unstable_Grid2";
@@ -10,13 +10,11 @@ import { axisClasses } from "@mui/x-charts/ChartsAxis";
 import PropTypes from "prop-types";
 import { texts } from "../../texts";
 
-const valueFormatter = (value) => `${(value * 100).toFixed(0)}%`;
-
 export const ReservoirsScatterChart = () => {
   const { data: dataReservoirs, isLoading: isLoadingReservoirs } =
     useGetReservoirsQuery();
   const reservoirUuids =
-    dataReservoirs === undefined ? [] : dataReservoirs.map((row) => row.uuid);
+    dataReservoirs === undefined ? [] : Object.keys(dataReservoirs);
   const timeOption = TimeOptions.YEAR;
   const inputs = {
     reservoirUuids: reservoirUuids || [],
@@ -77,14 +75,14 @@ export const ReservoirsScatterChart = () => {
 
   const yAxis = {
     scaleType: "linear",
-    label: "Change in Fill rate YOY (% of capacity)",
+    label: texts.labelFillRate,
     valueFormatter: valueFormatter,
     tickMinStep: 0.2,
   };
 
   const xAxis = {
     scaleType: "linear",
-    label: "Rainfall Cumulative (% of historical)",
+    label: texts.labelRainFallYear,
     valueFormatter: valueFormatter,
     tickMinStep: 0.2,
   };
@@ -124,8 +122,14 @@ export const ReservoirsScatterChart = () => {
   );
 
   return (
-    <Grid container justifyContent="center" alignItems="center" xs={12}>
-      <Typography variant="h4">{texts.titleScatter}</Typography>
+    <Grid
+      container
+      justifyContent="center"
+      alignItems="center"
+      xs={12}
+      sx={{ margin: "20px" }}
+    >
+      <Typography variant="h2">{texts.titleScatter}</Typography>
       <Typography>{texts.descriptionScatter}</Typography>
       {chart}
     </Grid>

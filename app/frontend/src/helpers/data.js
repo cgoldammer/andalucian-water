@@ -143,6 +143,25 @@ export const getTableData = (data, timeOption = "day") => {
 
   return { dataCleaned: dataAdded, columns };
 };
+
+const addReservoirDataToRow = (row, reservoirData) => {
+  if (
+    reservoirData[row.reservoirUuid] == undefined ||
+    reservoirData[row.reservoirUuid].region == undefined
+  ) {
+    return undefined;
+  }
+  const reservoir = reservoirData[row.reservoirUuid];
+  return {
+    ...row,
+    reservoirRegionName: reservoir.region.name,
+  };
+};
+
+export const addReservoirData = (dataCleaned, dataReservoirs) => {
+  return dataCleaned.map((row) => addReservoirDataToRow(row, dataReservoirs));
+};
+
 /* 
 The shortfall (as share of capacity) is calculate as:
 
@@ -155,13 +174,36 @@ This is consistent with the simple model here:
 https://github.com/cgoldammer/andalucian-water/blob/master/app/backend/water/scripts/forecast.ipynb
 */
 
-export const constShortfall = 0.3;
+const paramsPred = {
+  Intercept: -0.3,
+  volume_rel_lag: 1.0,
+  rainfall_rel: 0.3,
+  "I((rainfall_rel + 1) ** 0.5)": 0,
+  "I((rainfall_rel + 1.5) ** 0.5)": 0,
+  "rainfall_rel:volume_rel_lag": 0,
+};
+
+export const getPredictions = (row, rainfallExpected) => {
+  const capacity = row.capacity;
+  const volumeLag = row.volumeLagged;
+  const volumeLagRel = volumeLag / capacity;
+  const predicted_rel = volumeLagRel - 0.3 + 0.3 * rainfallExpected;
+  const change_rel = predicted_rel - volumeLagRel;
+  const change = change_rel * capacity;
+
+  return {
+    predicted_rel,
+    change_rel,
+    change,
+  };
+};
 
 export const addShortfall = (data, rainfallExpected) => {
   return data.map((row) => {
+    const predictions = getPredictions(row, rainfallExpected);
     return {
       ...row,
-      shortfall: row.capacity * constShortfall * (1 - rainfallExpected),
+      ...predictions,
     };
   });
 };
@@ -201,4 +243,41 @@ export const addLaggedVolume = (data) => {
   });
 
   return dataWithLaggedVolume;
+};
+
+const dataByField = (data, getter, outcome = "change") => {
+  const res = data.reduce((result, row) => {
+    const existing = result.find((item) => item.group === getter(row));
+    if (existing) {
+      existing[outcome] += row[outcome];
+    } else {
+      const vals = {
+        group: getter(row),
+      };
+      (vals[outcome] = row[outcome]), result.push(vals);
+    }
+    return result;
+  }, []);
+  return res;
+};
+
+export const dataByProvince = (data) =>
+  dataByField(data, (row) => row.reservoirProvince);
+
+export const dataByRegion = (data) =>
+  dataByField(data, (row) => row.reservoirRegionName);
+
+export const aggTypes = {
+  province: {
+    name: "Province",
+    aggFunction: dataByProvince,
+    minAxis: -1200,
+    maxAxis: 700,
+  },
+  region: {
+    name: "Region",
+    aggFunction: dataByRegion,
+    minAxis: -2500,
+    maxAxis: 1300,
+  },
 };

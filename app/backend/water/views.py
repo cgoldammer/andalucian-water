@@ -5,7 +5,7 @@ from .models import (
     RainFall,
     ReservoirState,
     ReservoirSerializer,
-    ReservoirSerializer2,
+    ReservoirSerializerExtended,
     ReservoirStateSerializer,
     RainFallSerializer,
 )
@@ -140,7 +140,7 @@ def get_reservoirs(request):
     log.warn("get_reservoirs")
     reservoirs = data.get_reservoir_data()
     log.warn(f"reservoirs: {len(reservoirs)}")
-    reservoirs_json = ReservoirSerializer2(reservoirs, many=True)
+    reservoirs_json = ReservoirSerializerExtended(reservoirs, many=True)
     return Response(reservoirs_json.data)
 
 

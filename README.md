@@ -2,8 +2,7 @@
 
 ## Overview
 
-If you just want to use the data, it's probably easiest to work with pre-cleaned CSV datasets,
-probably [a cleaned version of the raw data](data/datasets/monthly_corrected.csv). And then look
+If you just want to use the data, it's probably easiest to work with [cleaned CSV tabular data](https://andalucianwater.s3.amazonaws.com/data/cleaned/all_parsed_cleaned.csv). And then look
 at the [analysis.ipynb notebook](./docs/analysis.ipynb) to see examples how this data can get used.
 
 At a high level, this data contains the fill status for the water reservoirs in Andalucia, Spain.
@@ -24,15 +23,15 @@ But I take anything I can get!
 
 The [parse.ipynb notebook](parse.ipynb) contains the code for parsing the pdf docs, turning it into a dataframe with simplified column names and some data cleaning, which can be [downloaded from s3](https://andalucianwater.s3.amazonaws.com/data/cleaned/all_parsed_cleaned.csv).
 
-# Data available
+# Data used
 
 ## Raw
 
-1. Reservoir state: From [portalrediam.cica.es](https://portalrediam.cica.es/descargas?path=%2F04_RECURSOS_NATURALES%2F04_AGUAS%2F01_SUPERFICIALES%2F00_SUPERFICIALES%2FEmbalses_al_dia%2FDocumentos%2Fpdf%2Freserva).
+1. Reservoir state: From [portalrediam.cica.es](https://portalrediam.cica.es/descargas?path=%2F04_RECURSOS_NATURALES%2F04_AGUAS%2F01_SUPERFICIALES%2F00_SUPERFICIALES%2FEmbalses_al_dia%2FDocumentos%2Fpdf%2Freserva). We parse the PDF to obtain cleaned tabular data (see below).
 
-2. Reservoirs: From [portalrediam.cica.es](https://portalrediam.cica.es/descargas?path=%2F04_RECURSOS_NATURALES%2F04_AGUAS%2F01_SUPERFICIALES%2F00_SUPERFICIALES%2FInventario_Presas_Embalses), downloaded to [s3](https://andalucianwater.s3.amazonaws.com/data/raw/reservoirs_geo/reservoirs.gpkg)
+2. Reservoirs: From [portalrediam.cica.es](https://portalrediam.cica.es/descargas?path=%2F04_RECURSOS_NATURALES%2F04_AGUAS%2F01_SUPERFICIALES%2F00_SUPERFICIALES%2FInventario_Presas_Embalses), available on [s3](https://andalucianwater.s3.amazonaws.com/data/raw/reservoirs_geo/reservoirs.gpkg)
 
-3. Demarciaciones hidrograficas: From [Miteco](https://www.miteco.gob.es/es/cartografia-y-sig/ide/descargas/agua/demarcaciones-hidrograficas-phc-2022-2027.html)
+3. Demarciaciones hidrograficas: From [Miteco](https://www.miteco.gob.es/es/cartografia-y-sig/ide/descargas/agua/demarcaciones-hidrograficas-phc-2022-2027.html), available on [s3](https://andalucianwater.s3.amazonaws.com/data/raw/demarcaciones/)
 
 ## Cleaned
 

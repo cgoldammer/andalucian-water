@@ -1,18 +1,29 @@
 import React from "react";
 import { useGetDailyDataQuery, useGetReservoirsQuery } from "../api/apiSlice";
 import { TimeOptions } from "../../helpers/helpers";
-import { getTableData, addShortfall } from "../../helpers/data";
+import {
+  getTableData,
+  addShortfall,
+  dataByProvince,
+  dataByRegion,
+  addReservoirData,
+  aggTypes,
+} from "../../helpers/data";
 import { datesDefault } from "../../helpers/defaults";
-import { BarChart } from "@mui/x-charts";
+import { BarChart, LineChart } from "@mui/x-charts";
 import Slider from "@mui/material/Slider";
 import Grid from "@mui/material/Unstable_Grid2";
 import Typography from "@mui/material/Typography";
-
+import { valueFormatter } from "../../helpers/helpers";
 import PropTypes from "prop-types";
-import { texts } from "../../texts";
+import { texts, namesRegionsShort } from "../../texts";
+import { ToggleButton, ToggleButtonGroup } from "@mui/material";
+
+const rainFallDefault = 0.5;
 
 export const GapChart = () => {
-  const [rainfallExpected, setRainfallExpected] = React.useState(0.5);
+  const [rainfallExpected, setRainfallExpected] =
+    React.useState(rainFallDefault);
   const handleRainfallExpectedChange = (event) => {
     setRainfallExpected(event.target.value);
   };
@@ -23,21 +34,21 @@ export const GapChart = () => {
 
   return (
     <Grid container justifyContent="center" alignItems="center" xs={12}>
-      <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
-        <Typography variant="h4">Rain (% of historical)</Typography>
-      </Grid>
       <Grid display="flex" justifyContent="center" alignItems="center" xs={6}>
+        <Typography variant="h4">{texts.rainSlider}</Typography>
+      </Grid>
+      <Grid display="flex" justifyContent="center" alignItems="center" xs={3}>
         <Slider
           type="range"
-          min={0.2}
-          max={0.8}
-          step={0.05}
+          min={0.0}
+          max={1.2}
+          step={0.1}
           marks
           value={rainfallExpected}
           onChange={handleRainfallExpectedChange}
         />
       </Grid>
-      <Grid display="flex" justifyContent="center" alignItems="center" xs={6}>
+      <Grid display="flex" justifyContent="center" alignItems="center" xs={3}>
         <Typography variant="h2">
           {displayAsPercent(rainfallExpected)}
         </Typography>
@@ -49,12 +60,30 @@ export const GapChart = () => {
   );
 };
 
+const getAll = (data, aggFunction) => {
+  // Range from 0 to 1.2, steps of 0.1
+  const rainfalls = Array.from({ length: 13 }, (_, i) => i / 10);
+  const getAggForRainFall = (rainfallExpected) => {
+    const dataAdded = addShortfall(data, rainfallExpected).filter(
+      (row) => new Date(row.date).getFullYear() == 2023
+    );
+    return aggFunction(dataAdded);
+  };
+
+  return rainfalls.map((rainfall) => {
+    return {
+      data: getAggForRainFall(rainfall),
+      rainfall: rainfall,
+    };
+  });
+};
+
 export const GapChartDisplay = (props) => {
   const { rainfallExpected } = props;
   const { data: dataReservoirs, isLoading: isLoadingReservoirs } =
     useGetReservoirsQuery();
   const reservoirUuids =
-    dataReservoirs === undefined ? [] : dataReservoirs.map((row) => row.uuid);
+    dataReservoirs === undefined ? {} : Object.keys(dataReservoirs);
   const timeOption = TimeOptions.YEAR;
   const inputs = {
     reservoirUuids: reservoirUuids,
@@ -66,10 +95,16 @@ export const GapChartDisplay = (props) => {
   const { data, isLoading } = useGetDailyDataQuery(inputs, {
     skip: reservoirUuids.length == 0,
   });
+  const [aggType, setAggType] = React.useState("province");
+
+  const handleChange = (event, newAlignment) => {
+    setAggType(newAlignment);
+  };
 
   if (
     isLoadingReservoirs ||
-    dataReservoirs == undefined ||
+    dataReservoirs === undefined ||
+    Object.keys(dataReservoirs).length === 0 ||
     isLoading ||
     data == undefined ||
     data.length == 0
@@ -78,45 +113,127 @@ export const GapChartDisplay = (props) => {
   }
 
   const { dataCleaned } = getTableData(data, timeOption);
+  const dataCleanedFull = addReservoirData(dataCleaned, dataReservoirs).filter(
+    (row) => row !== undefined
+  );
 
   const dataCleanedLatestYear = addShortfall(
-    dataCleaned,
+    dataCleanedFull,
     rainfallExpected
   ).filter((row) => new Date(row.date).getFullYear() == 2023);
 
-  const dataByProvince = dataCleanedLatestYear.reduce((result, row) => {
-    const existingProvince = result.find(
-      (item) => item.province === row.reservoirProvince
-    );
-    if (existingProvince) {
-      existingProvince.shortfall += row.shortfall;
-    } else {
-      result.push({
-        province: row.reservoirProvince,
-        shortfall: row.shortfall,
-      });
-    }
-    return result;
-  }, []);
+  const aggData = aggTypes[aggType];
 
-  const seriesProvince = dataByProvince.map((row) => {
+  const seriesGrouped = aggData.aggFunction(dataCleanedLatestYear);
+
+  const seriesAgg = {
+    data: seriesGrouped.map((row) => row.change),
+  };
+
+  const totalChange = dataCleanedLatestYear.reduce(
+    (acc, row) => acc + row.change,
+    0
+  );
+
+  const totalChangeString = totalChange < 0 ? "Shortfall" : "Increase";
+  const totalChangeAbs = totalChange < 0 ? -totalChange : totalChange;
+
+  const seriesAggNames = seriesGrouped.map((row) =>
+    namesRegionsShort[row.group] != undefined
+      ? namesRegionsShort[row.group]
+      : row.group
+  );
+
+  console.log("Agg names");
+  console.log(seriesGrouped);
+  console.log(seriesAggNames);
+
+  const dataAll = getAll(dataCleanedFull, aggData.aggFunction);
+
+  const groups = dataAll[0].data.map((row) => row.group);
+  const getSeriesForGroup = (group) => {
+    const dataGroup = dataAll.map(
+      (data) => data.data.filter((row) => row.group == group)[0].change
+    );
     return {
-      data: [row.shortfall],
-      stack: "Province",
-      label: row.province,
+      data: dataGroup,
+      showMark: false,
+      label: group,
     };
-  });
+  };
+
+  const seriesStacked = groups.map((group) => getSeriesForGroup(group));
+
+  const control = {
+    value: aggType,
+    onChange: handleChange,
+    exclusive: true,
+  };
+
+  const toggleButtons = (
+    <ToggleButtonGroup size="small" aria-label="Small sizes" {...control}>
+      <ToggleButton value="province" key="center">
+        By Province
+      </ToggleButton>
+      <ToggleButton value="region" key="left">
+        By Water Region
+      </ToggleButton>
+    </ToggleButtonGroup>
+  );
+
+  const lineChart = (
+    <LineChart
+      series={seriesStacked}
+      width={600}
+      height={300}
+      slotProps={{ legend: { hidden: true } }}
+      xAxis={[
+        {
+          scaleType: "band",
+          data: dataAll.map((data) => data.rainfall),
+          valueFormatter: valueFormatter,
+        },
+      ]}
+    />
+  );
 
   return (
     <Grid container justifyContent="center" alignItems="center" xs={12}>
-      <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
-        <Typography variant="h4">Shortfall</Typography>
+      <Grid
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        xs={12}
+        sx={{ margin: "20px" }}
+      >
+        <Typography variant="h1">
+          {totalChangeString} of {totalChangeAbs.toFixed(0)} HM3/year
+        </Typography>
       </Grid>
       <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
-        <Typography>{texts.descriptionGap}</Typography>
+        {toggleButtons}
       </Grid>
       <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
+        <BarChart
+          series={[seriesAgg]}
+          width={800}
+          height={300}
+          xAxis={[{ scaleType: "band", data: seriesAggNames }]}
+          yAxis={[
+            { scaleType: "linear", min: aggData.minAxis, max: aggData.maxAxis },
+          ]} // Set the yAxis range to -500, 500
+          slotProps={{ legend: { hidden: true } }}
+        />
+      </Grid>
+      <Grid
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        xs={12}
+        sx={{ margin: "20px" }}
+      >
         <Typography>
+          {texts.descriptionGap}{" "}
           <a
             href="https://github.com/cgoldammer/andalucian-water/blob/master/app/backend/water/scripts/forecast.ipynb"
             target="_blank"
@@ -126,15 +243,8 @@ export const GapChartDisplay = (props) => {
           </a>
         </Typography>
       </Grid>
-
       <Grid display="flex" justifyContent="center" alignItems="center" xs={12}>
-        <BarChart
-          series={seriesProvince}
-          width={300}
-          height={300}
-          xAxis={[{ scaleType: "band", data: ["overall"] }]}
-          slotProps={{ legend: { hidden: true } }}
-        />
+        {lineChart}
       </Grid>
     </Grid>
   );

@@ -22,11 +22,19 @@ class UuidModel(models.Model):
         abstract = True
 
 
+class Region(gis_models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    geometry = gis_models.MultiPolygonField()
+    constraints = [models.UniqueConstraint(fields=["name"], name="unique_region_name")]
+
+
 class Reservoir(UuidModel):
     name = models.CharField(max_length=100)
     capacity = models.FloatField(null=False)
     name_full = models.CharField(max_length=100, null=True)
     province = models.CharField(max_length=100, null=True)
+    region = models.ForeignKey(Region, on_delete=models.CASCADE, null=True)
     constraints = [
         models.UniqueConstraint(
             fields=[
@@ -61,13 +69,20 @@ class ReservoirState(UuidModel):
     ]
 
 
+class RegionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Region
+        fields = ["uuid", "name"]
+
+
 class ReservoirSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservoir
         fields = ["uuid", "name", "name_full", "province", "capacity"]
 
 
-class ReservoirSerializer2(serializers.ModelSerializer):
+class ReservoirSerializerExtended(serializers.ModelSerializer):
+    region = RegionSerializer()
     num_states = serializers.IntegerField()
     volume_latest = serializers.FloatField()
 
@@ -81,6 +96,7 @@ class ReservoirSerializer2(serializers.ModelSerializer):
             "capacity",
             "num_states",
             "volume_latest",
+            "region",
         ]
 
 
@@ -116,13 +132,6 @@ class RainFallSerializer(serializers.ModelSerializer):
         if np.isnan(data["amount"]):
             data["amount"] = -1
         return data
-
-
-class Region(gis_models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100)
-    geometry = gis_models.MultiPolygonField()
-    constraints = [models.UniqueConstraint(fields=["name"], name="unique_region_name")]
 
 
 class ReservoirGeo(gis_models.Model):
