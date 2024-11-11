@@ -25,6 +25,7 @@ from rest_framework.authentication import (
     BasicAuthentication,
     TokenAuthentication,
 )
+from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import authentication_classes, permission_classes
 import logging
@@ -40,6 +41,18 @@ from django.http import JsonResponse
 from .models import ReservoirGeo
 
 log = logging.getLogger(__name__)
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([AllowAny])
+@csrf_exempt
+def health(request):
+    response = JsonResponse({"status": "ok"})
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    return response
 
 
 @api_view(["GET"])

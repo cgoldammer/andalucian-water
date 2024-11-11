@@ -26,13 +26,13 @@ const projectFeatures = [
 ];
 
 const featuresAdded = [
-  "April 13, 2024: Added Hydrographic regions",
+  "Nov 11, 2024: Data up to Nov 2024",
   "April 16, 2024: Improved shortfall predictions",
 ];
 
 const featuresComing = [
   "Daily resolution for reservoir levels",
-  "Understanding the impact of current investments",
+  "Impact of current investments",
   "Spanish language support",
 ];
 
@@ -74,7 +74,7 @@ export const texts = {
     return `Reservoir levels ${directionString} by ${value} of capacity`;
   },
   getLevelsTextAbs: (direction, value) => {
-    const directionString = direction > 0 ? "Shortfall" : "Increase";
+    const directionString = direction > 0 ? "Increase" : "Shortfall";
     return `${directionString} of ${value} HM3/year`;
   },
 };

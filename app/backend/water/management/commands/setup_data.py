@@ -27,12 +27,10 @@ crs_default = "EPSG:4326"
 
 BUCKET = "andalucianwater"
 
-folder_data = "data"
-
 locations_s3 = {
-    "states_table": f"{folder_data}/cleaned/all_parsed_cleaned.csv",
-    "demarcaciones": f"{folder_data}/raw/demarcaciones",
-    "reservoirs_geo": f"{folder_data}/raw/reservoirs_geo/reservoirs.gpkg",
+    "states_table": f"{p.folder_data}/datasets/all_parsed_cleaned.csv",
+    "demarcaciones": f"{p.folder_data}/raw/demarcaciones",
+    "reservoirs_geo": f"{p.folder_data}/raw/reservoirs.gpkg",
 }
 
 PRECISION_NUM = 0.001
@@ -64,22 +62,22 @@ def get_tmp_file(name):
 def get_regions_raw():
     key = "demarcaciones"
     folder_tmp = get_tmp_file(key)
-    copy_s3(locations_s3[key], folder_tmp, recursive=True)
-    return gpd.read_file(folder_tmp)
+    # copy_s3(locations_s3[key], folder_tmp, recursive=True)
+    return gpd.read_file(locations_s3[key])
 
 
 def get_data_reservoirs_geo():
     key = "reservoirs_geo"
     location_tmp = get_tmp_file(key)
-    copy_s3(locations_s3[key], location_tmp)
-    return gpd.read_file(location_tmp)
+    # copy_s3(locations_s3[key], location_tmp)
+    return gpd.read_file(locations_s3[key])
 
 
 def get_data():
     key = "states_table"
     location_tmp = get_tmp_file(key)
-    copy_s3(locations_s3[key], location_tmp)
-    df = pd.read_csv(location_tmp)
+    # copy_s3(locations_s3[key], location_tmp)
+    df = pd.read_csv(locations_s3[key])
     return pick_yearly(df)
 
 

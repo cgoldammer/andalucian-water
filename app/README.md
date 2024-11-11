@@ -37,3 +37,28 @@ sudo docker run -it --rm --name certbot \
 ```
 
 Then I do some hacky way of copying these from the resulting folder into my laptop, which is then synced from `support/sshkeys` to the server and hosted on nginx. This should be improved obviously.
+
+```
+mkdir -p ~/keys
+
+sudo cp -L /etc/letsencrypt/live/water.chrisgoldammer.com/cert.pem ~/keys/cert.pem
+sudo cp -L /etc/letsencrypt/live/water.chrisgoldammer.com/chain.pem ~/keys/chain.pem
+sudo cp -L /etc/letsencrypt/live/water.chrisgoldammer.com/fullchain.pem ~/keys/fullchain.pem
+sudo cp -L /etc/letsencrypt/live/water.chrisgoldammer.com/privkey.pem ~/keys/privkey.pem
+```
+
+sudo chown ec2-user:ec2-user ~/keys/cert.pem ~/keys/chain.pem ~/keys/fullchain.pem ~/keys/privkey.pem
+```
+
+And this folder containes the certificates directly on the instance (not inside a docker container). I can copy these onto my laptop using
+
+```
+rsync -r water:~/keys/ support/sshkeys/
+
+
+# App setup
+
+1. Provision required data, see [../README.md] for download
+2. Update DB:
+ - Dev: `run_manage local dev setup_data`
+ - RDS: `run_manage rdstunnel dev setup_data`

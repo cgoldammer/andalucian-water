@@ -84,6 +84,5 @@ test("The fragment should contain a description for the slider", () => {
   const { getByText } = setup();
 
   const expectedText = texts.rainSlider;
-
   expect(getByText(expectedText)).toBeInTheDocument();
 });

@@ -139,11 +139,7 @@ export const GapChartDisplay = (props) => {
   );
 
   const totalRelChange = totalChange / totalCapacity;
-
-  const totalChangeString = totalChange < 0 ? "Shortfall" : "Increase";
   const totalChangeAbs = totalChange < 0 ? -totalChange : totalChange;
-
-  const relChangeString = totalRelChange < 0 ? "decrease" : "increase";
   const relChangeAbs = totalRelChange < 0 ? -totalRelChange : totalRelChange;
 
   const seriesAggNames = seriesGrouped.map((row) =>
@@ -151,10 +147,6 @@ export const GapChartDisplay = (props) => {
       ? namesRegionsShort[row.group]
       : row.group
   );
-
-  console.log("Agg names");
-  console.log(seriesGrouped);
-  console.log(seriesAggNames);
 
   const dataAll = getAll(dataCleanedFull, aggData.aggFunction);
 
@@ -229,10 +221,7 @@ export const GapChartDisplay = (props) => {
         sx={{ margin: "20px" }}
       >
         <Typography variant="h1">
-          {texts.getLevelsTextAbs(
-            totalChangeAbs > 0,
-            totalChangeAbs.toFixed(0)
-          )}
+          {texts.getLevelsTextAbs(totalChange > 0, totalChangeAbs.toFixed(0))}
         </Typography>
       </Grid>
       <Grid
@@ -244,7 +233,7 @@ export const GapChartDisplay = (props) => {
       >
         <Typography variant="h3">
           {texts.getLevelsTextRel(
-            totalChangeAbs > 0,
+            totalChange > 0,
             valueFormatter(relChangeAbs)
           )}
         </Typography>

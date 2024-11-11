@@ -47,9 +47,9 @@ export const IntroView = () => (
       </Typography>
     </CenteredGrid>
     <CenteredGrid xs={12}>
-      <Alert severity="warning" style={{ margin: "10px" }}>
+      {/* <Alert severity="warning" style={{ margin: "10px" }}>
         {texts.projectWarnings}
-      </Alert>
+      </Alert> */}
       {texts.featuresAdded.map((feature) => (
         <Alert severity="success" key={feature} sx={{ margin: "5px" }}>
           {feature}

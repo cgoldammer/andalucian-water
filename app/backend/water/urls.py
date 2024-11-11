@@ -27,4 +27,5 @@ urlpatterns = [
     ),
     path("api/get_regions_geojson", views.get_regions_json, name="get_regions_geojson"),
     path("api/simple", views.simple_string, name="simple_string"),
+    path("api/health", views.health, name="health"),
 ]
