@@ -1,6 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from water.models import Reservoir, ReservoirState, Region, ReservoirGeo
+from water import models as m
 from water.utils import helpers
 from water.fixtures import setup_script
 from django.contrib.auth.models import User
@@ -94,40 +94,30 @@ class UserTestCase(AppTest):
         self.assertTrue("user" in response.json())
 
 
-class ReservoirTestCase(AppTest):
+class DataTestCase(AppTest):
     def setUp(self):
         super().setUp()
-
         state.set_mock_mode(True)
+
+    def testBasic(self):
+        setup_script.fill_simple()
+        reservoirs = m.Reservoir.objects.all()
+        self.assertTrue(len(reservoirs) > 0)
+        materialized = data.StatesMaterialized.objects.all()
+        self.assertTrue(len(materialized) > 0)
 
     def testGetReservoirs(self):
         setup_script.fill_simple()
         reservoirs = data.get_reservoir_data()
-
-        reservoirs_raw = Reservoir.objects.all()
+        reservoirs_raw = m.Reservoir.objects.all()
         self.assertTrue(len(reservoirs) == len(reservoirs_raw))
 
-    def testGetReservoirStates(self):
-        setup_script.fill_simple()
-        reservoirs = Reservoir.objects.all()
-        reservoir = reservoirs[0]
-
-        start_date = "1970-01-01"
-        end_date = "2999-01-01"
-
-        num_obs = 10
-        states = data.get_reservoir_states_data(
-            num_obs, start_date, end_date, False, [str(reservoir.uuid)]
-        )
-
-        assert len(states) > 0
-
-    def testGetWideYearly(self):
+    def testGetWide(self):
         num_reservoirs = 1
         date_start = "2023-09-01"
         date_end = "2024-01-01"
         setup_script.fill_simple(num_reservoirs, date_start, date_end)
-        reservoir_uuids = [str(Reservoir.objects.all()[0].uuid)]
+        reservoir_uuids = [str(m.Reservoir.objects.all()[0].uuid)]
 
         arguments = {
             "num_obs": 1000,
@@ -137,56 +127,45 @@ class ReservoirTestCase(AppTest):
             "reservoir_uuids": reservoir_uuids,
         }
         states_year = data.get_wide_data(**arguments)
-        assert len(states_year) == num_reservoirs
+        message = f"Expected {num_reservoirs} reservoirs, got {len(states_year)}"
+        assert len(states_year) == num_reservoirs, message
 
         arguments["is_first_of_year"] = False
         states_day = data.get_wide_data(**arguments)
-        assert len(states_day) >= num_reservoirs * 30
+        message = f"Expected {num_reservoirs} reservoirs, got {len(states_day)}"
+        assert len(states_day) >= num_reservoirs * 30, message
 
-    def testGetWideDaily(self):
-        setup_script.fill_simple()
-        reservoir_uuids = [str(Reservoir.objects.all()[0].uuid)]
 
-        arguments = {
-            "num_obs": 10,
-            "start_date": "1970-01-01",
-            "end_date": "2999-01-01",
-            "is_first_of_year": False,
-            "reservoir_uuids": reservoir_uuids,
+class ApiTestCase(AppTest):
+
+    def setUp(self):
+        super().setUp()
+        state.set_mock_mode(True)
+
+    def testGetWide(self):
+
+        params = {
+            "is_first_of_year": True,
+            "start_date": "2023-09-01",
+            "end_date": "2024-01-01",
         }
-        states = data.get_wide_data(**arguments)
 
-        # Ensure that both reservoirState and rainfall
-        # are not null at least once in the states
+        setup_script.fill_simple(
+            num_reservoirs=1,
+            start_date=params["start_date"],
+            end_date=params["end_date"],
+        )
 
-        not_null_state = sum([st["reservoir_state"] is not None for st in states])
-        not_null_rainfall = sum([st["rainfall"] is not None for st in states])
-        assert not_null_state > 0
-        assert not_null_rainfall > 0
-        assert len(states) > 0
-
-        first_res = states[0]
-        assert first_res["reservoir"] is not None
-        assert first_res["reservoir_state"] is not None
-        assert first_res["rainfall"] is not None
-
-    def testGetDailyView(self):
-        setup_script.fill_simple()
-        reservoirs = Reservoir.objects.all()
-        reservoir = reservoirs[0]
-
-        start_date = "1970-01-01"
-        end_date = "2999-01-01"
-
-        num_obs = 10
-        url = f"/api/get_wide/?num_obs={num_obs}&start_date={start_date}&end_date={end_date}&reservoir_uuids={reservoir.uuid}"
-
-        response = self.client.get(url)
-        # Assert that response is ok
+        params["reservoir_uuids"] = [str(m.Reservoir.objects.all()[0].uuid)]
+        url = "/api/get_wide/"
+        response = self.client.get(url, params)
         self.assertEqual(response.status_code, 200)
-        json_parsed = response.json()
+        data = response.json()
 
-        assert len(json_parsed) > 0
+        self.assertTrue(len(data) > 0)
+
+        first = data[0]
+        self.assertTrue("date" in first)
 
 
 class GeoTestCase(AppTest):
@@ -196,11 +175,11 @@ class GeoTestCase(AppTest):
         setup_script.create_regions()
 
     def test_reservoir_geo(self):
-        geos = ReservoirGeo.objects.all()
+        geos = m.ReservoirGeo.objects.all()
         gj = data.get_reservoirs_geojson()
         assert len(gj["features"]) == len(geos)
 
     def test_regions(self):
-        geos = Region.objects.all()
+        geos = m.Region.objects.all()
         gj = data.get_regions_geojson(filter_to_reservoir=False)
         assert len(gj["features"]) == len(geos)

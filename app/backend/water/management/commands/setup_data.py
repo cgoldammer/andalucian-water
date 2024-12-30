@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-
+import numpy as np
 import difflib
 import pandas as pd
 import geopandas as gpd
@@ -289,13 +289,20 @@ def store_to_db(df):
     reservoir_names = reservoirs.values_list("name", flat=True)
 
     def get_rainfall(row):
-        return RainFall(
-            date=row["ds"],
-            reservoir=reservoir_for_name[row["reservoir"]],
-            amount=row["rainfallsince_diff"],
-            amount_cumulative=row["rainfallsince"],
-            amount_cumulative_historical=row["avgrainfall1971_2000"],
-        )
+        not_missing = not np.isnan(row["rainfallsince_diff"])
+
+        if not_missing:
+
+            return RainFall(
+                date=row["ds"],
+                reservoir=reservoir_for_name[row["reservoir"]],
+                amount=row["rainfallsince_diff"],
+                amount_cumulative=row["rainfallsince"],
+                amount_cumulative_historical=row["avgrainfall1971_2000"],
+            )
+
+        else:
+            return None
 
     rainfalls_to_store = (
         df_all[df_all.reservoir.isin(reservoir_names)]
@@ -303,7 +310,7 @@ def store_to_db(df):
         .tolist()
     )
 
-    RainFall.objects.bulk_create(rainfalls_to_store)
+    RainFall.objects.bulk_create([rf for rf in rainfalls_to_store if rf is not None])
 
     log.info("Done rain")
 

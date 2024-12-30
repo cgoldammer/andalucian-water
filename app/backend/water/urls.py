@@ -12,12 +12,6 @@ urlpatterns = [
     path("api/api-token-auth", authViews.obtain_auth_token),
     path("api/register", views.register_view, name="register"),
     path("api/login", views.login_view, name="login"),
-    path(
-        "api/get_reservoir_states/",
-        views.get_reservoir_states,
-        name="get_reservoir_states",
-    ),
-    path("api/get_rainfall/", views.get_rainfall, name="get_rainfall"),
     path("api/get_reservoirs", views.get_reservoirs, name="get_reservoirs"),
     path("api/get_wide/", views.get_wide, name="get_wide"),
     path(

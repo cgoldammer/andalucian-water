@@ -46,11 +46,7 @@ export const getChartData = (data, timeOption) => {
     );
   } else {
     seriesRain = uuids.map((uuid) =>
-      getValuesForUuid(
-        uuid,
-        (row) => row.rainAmountCumulative / row.rainAmountCumulativeHistorical,
-        "Rain"
-      )
+      getValuesForUuid(uuid, (row) => row.rainAmountCumulativeRelative, "Rain")
     );
   }
 
@@ -63,29 +59,30 @@ export const getChartData = (data, timeOption) => {
 };
 
 export const getTableData = (data, timeOption = "day") => {
+  console.log("row", data[0]);
   const dataCleaned = data.map((row) => {
+    const hasRain = row.has_rainfall;
     return {
-      id: row.reservoir.uuid + row.date,
+      id: row.reservoir_uuid + row.date,
       date: row.date,
-      volume: row.reservoir_state ? row.reservoir_state.volume : null,
-      capacity: row.reservoir.capacity,
-      reservoirName: row.reservoir.name,
-      reservoirProvince: row.reservoir.province,
-      reservoirUuid: row.reservoir.uuid,
-      rainAmount: row.rainfall ? row.rainfall.amount : null,
-      rainAmountCumulative: row.rainfall
-        ? row.rainfall.amount_cumulative
+      volume: row.volume,
+      capacity: row.capacity,
+      hasRainfall: hasRain,
+      reservoirName: row.reservoir_name,
+      reservoirProvince: row.province,
+      reservoirUuid: row.reservoir_uuid,
+      rainAmount: hasRain ? row.rainfall_amount : null,
+      rainAmountCumulative: hasRain ? row.rainfall_cumulative : null,
+      rainAmountCumulativeHistorical: hasRain
+        ? row.rainfall_cumulative_historical
         : null,
-
-      rainAmountCumulativeHistorical: row.rainfall
-        ? row.rainfall.amount_cumulative_historical
-        : null,
-      rainAmountCumulativeRelative: row.rainfall
-        ? row.rainfall.amount_cumulative /
-          row.rainfall.amount_cumulative_historical
+      rainAmountCumulativeRelative: hasRain
+        ? row.rainfall_cumulative / row.rainfall_cumulative_historical
         : null,
     };
   });
+
+  console.log("dataCleaned", data, dataCleaned);
 
   const dataAdded = addLaggedVolume(dataCleaned);
 

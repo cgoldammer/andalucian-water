@@ -1,16 +1,8 @@
-from ..models import (
-    Reservoir,
-    RainFall,
-    ReservoirState,
-    ReservoirGeo,
-    ReservoirSerializer,
-    ReservoirStateSerializer,
-    RainFallSerializer,
-    Region,
-)
+from django.db import models
 from django.db.models import Count
+from django.db.models import Q
 import logging
-from ..models import ReservoirSerializer
+from water import models as m
 from collections import defaultdict
 from rest_framework import serializers
 from django.db.models import OuterRef, Subquery, Max
@@ -37,14 +29,14 @@ def get_reservoir_states_data(
     num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
 ):
     log.info("Getting states")
-    states = ReservoirState.objects.all()
+    states = m.ReservoirState.objects.all()
     return get_filters(
         states, num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
     )
 
 
 def get_rainfall_data(num_obs, start_date, end_date, is_first_of_year, reservoir_uuids):
-    states = RainFall.objects.all()
+    states = m.RainFall.objects.all()
 
     return get_filters(
         states, num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
@@ -52,90 +44,68 @@ def get_rainfall_data(num_obs, start_date, end_date, is_first_of_year, reservoir
 
 
 def get_reservoir_data():
-    date_latest = "2023-09-01"
+    date_latest = "2024-09-01"
     most_recent_volume = (
-        ReservoirState.objects.filter(reservoir=OuterRef("pk"), date=date_latest)
+        m.ReservoirState.objects.filter(reservoir=OuterRef("pk"), date=date_latest)
         .order_by()
         .values("volume")[:1]
     )
 
-    reservoirs = Reservoir.objects.annotate(
+    reservoirs = m.Reservoir.objects.annotate(
         num_states=Count("reservoir_reservoirstate"),
         volume_latest=Coalesce(Subquery(most_recent_volume), 0.0),
     )
     return reservoirs
 
 
+class StatesMaterialized(models.Model):
+    date = models.DateField()
+    volume = models.FloatField()
+    reservoir_id = models.IntegerField()
+    reservoir_uuid = models.UUIDField()
+    reservoir_name = models.CharField(max_length=255)
+    capacity = models.FloatField()
+    name_full = models.CharField(max_length=255)
+    province = models.CharField(max_length=255)
+    region_id = models.UUIDField()
+    region_name = models.CharField(max_length=255)
+    has_rainfall = models.BooleanField()
+    rainfall_amount = models.FloatField()
+    rainfall_cumulative = models.FloatField()
+    rainfall_cumulative_historical = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = "water_statesmaterialized"
+
+
+class StatesMaterializedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StatesMaterialized
+        fields = "__all__"
+
+
 def get_wide_data(num_obs, start_date, end_date, is_first_of_year, reservoir_uuids):
 
-    # Create a table that's a full outer join of the ReservoirState and RainFall tables
-    # join on the date and reservoir_uuid columns
-    # use the ORM to create the join
-    log.info("Getting wide data")
+    filter_first_of_year = Q(date__day=1) & Q(date__month=9)
+    filter_first = filter_first_of_year if is_first_of_year else Q()
 
-    states = get_reservoir_states_data(
-        num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
-    )
-    rainfall = get_rainfall_data(
-        num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
+    from django.db.models import Min, Max
+
+    date_range_materialized = StatesMaterialized.objects.aggregate(
+        min_date=Min("date"), max_date=Max("date")
     )
 
-    def group_records(records):
-        grouped = defaultdict(lambda: {"Rainfall": None, "ReservoirState": None})
-        for record in records:
-            key = (record.date, record.reservoir.uuid)
-            grouped[key] = record
-        return grouped
+    allvals = StatesMaterialized.objects
+    filtered_date = allvals.filter(date__gte=start_date, date__lte=end_date)
+    filtered_reservoir = filtered_date.filter(reservoir_uuid__in=reservoir_uuids)
+    filtered = filtered_reservoir.filter(filter_first)
 
-    rainfall_grouped = group_records(rainfall)
-    reservoir_grouped = group_records(states)
+    print(
+        f"Counts: {allvals.count()} {filtered_date.count()} {filtered_reservoir.count()} {filtered.count()}"
+    )
 
-    if states.count() == 0:
-        print("GROUPED")
-        print(reservoir_grouped)
-        return []
-
-    # Step 3: Combine the groups to achieve a full outer join effect
-    combined_group = defaultdict(lambda: {"Rainfall": None, "ReservoirState": None})
-    for key in set(rainfall_grouped) | set(reservoir_grouped):  # Union of keys
-        if key in rainfall_grouped:
-            combined_group[key]["Rainfall"] = rainfall_grouped[key]
-        if key in reservoir_grouped:
-            combined_group[key]["ReservoirState"] = reservoir_grouped[key]
-
-    expanded = []
-    for key, value in sorted(combined_group.items()):
-
-        if not value["ReservoirState"] or not value["Rainfall"]:
-            continue
-
-        reservoir = value["ReservoirState"].reservoir
-
-        expanded.append(
-            {
-                "date": key[0],
-                "reservoir": reservoir,
-                "rainfall": value["Rainfall"],
-                "reservoir_state": value["ReservoirState"],
-            }
-        )
-    return expanded
-
-
-# Create a serializer for the combined_group dictionary
-# The dictionary has a key of (date_reservoir_uuid)
-# And the values of Rainfall and ReservoirState
-class DailyDataSerializer(serializers.Serializer):
-    date = serializers.DateField()
-    reservoir = ReservoirSerializer()
-    rainfall = RainFallSerializer()
-    reservoir_state = ReservoirStateSerializer()
-
-    def create(self, validated_data):
-        pass
-
-    def update(self, instance, validated_data):
-        pass
+    return filtered[0:num_obs]
 
 
 def query_to_geojson(query, properties_getter):
@@ -159,10 +129,10 @@ def query_to_geojson(query, properties_getter):
 
 
 def get_regions_geojson(filter_to_reservoir=True):
-    regions_geo = Region.objects.all()
+    regions_geo = m.Region.objects.all()
 
     if filter_to_reservoir:
-        reservoirs = Reservoir.objects.all()
+        reservoirs = m.Reservoir.objects.all()
 
         def get_reservoirs_in_region(region):
             return reservoirs.filter(
@@ -183,7 +153,7 @@ def get_regions_geojson(filter_to_reservoir=True):
 
 
 def get_reservoirs_geojson():
-    reservoirs_geo = ReservoirGeo.objects.all()
+    reservoirs_geo = m.ReservoirGeo.objects.all()
 
     def properties_getter(geo):
         reservoir = geo.reservoir

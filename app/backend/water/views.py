@@ -205,8 +205,11 @@ def createFilterRequest(handler, serializerForData):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        print("Inputs", inputs)
+
         states = handler(**inputs)
-        # log.info("States: " + str(len(states)))
+        print(f"States: {len(states)}")
+        print(states[0].__dict__)
 
         serializer = serializerForData(states, many=True)
         return Response(serializer.data)
@@ -214,11 +217,7 @@ def createFilterRequest(handler, serializerForData):
     return filter_request
 
 
-get_reservoir_states = createFilterRequest(
-    data.get_reservoir_states_data, ReservoirStateSerializer
-)
-get_rainfall = createFilterRequest(data.get_rainfall_data, RainFallSerializer)
-get_wide = createFilterRequest(data.get_wide_data, data.DailyDataSerializer)
+get_wide = createFilterRequest(data.get_wide_data, data.StatesMaterializedSerializer)
 
 
 # Provide the file in water/data/reservoirs.json as a json endpoint

@@ -13,6 +13,61 @@ folder_input = f"{folder_data}/input/cleaned"
 folder_output = f"{folder_data}/output"
 
 
+def get_filename_output(filename):
+    filename_output = filename.replace("pdf", "csv")
+    filename_output = os.path.join(folder_output, filename_output)
+    return filename_output
+
+
+def parse_file(filename):
+    full_filename = os.path.join(folder_new, filename)
+    filename_output = get_filename_output(filename)
+    if not os.path.exists(filename_output):
+        try:
+            tables = get_tables(full_filename)
+            df_raw = get_df(tables)
+            df = clean_df(df_raw)
+            df.to_csv(filename_output, index=False)
+        except Exception as e:
+            print(full_filename)
+            print(e)
+            pass
+
+
+def parse_full(overwrite=False, nums_last=300):
+
+    filenames_raw = sorted(os.listdir(folder_input))
+    filenames = filenames_raw[-nums_last:][::-1]
+    filenames
+
+    filenames_to_parse = []
+
+    for i, filename in enumerate(filenames):
+        filename_output = get_filename_output(filename)
+
+        filename_input_size = os.path.getsize(os.path.join(folder_new, filename))
+
+        if (
+            not os.path.exists(filename_output) or overwrite
+        ) and filename_input_size > 10240:
+            filenames_to_parse.append(filename)
+
+    if len(filenames_to_parse) == 0:
+        return
+
+    print(
+        f"Files to parse: {len(filenames_to_parse)} | Latest: {filenames_to_parse[0]}"
+    )
+
+    for i, filename in enumerate(filenames_to_parse):
+        if i % 50 == 0:
+            print(
+                f"{i} of {len(filenames_to_parse)}: {filename} / share completed: {round(i/len(filenames_to_parse)*100, 2)}%"
+            )
+
+        parse_file(filename)
+
+
 headers = {
     "EMBALSE": "Reservoir",
     "PROVINCIA": "Province",
@@ -182,3 +237,93 @@ def correct_issues(df):
     # In that case, it's probably best to replace the unknown months with missing values.
 
     return df
+
+
+def remove_bad_rows(df):
+    df_all = add_cols(df)
+
+    df_all["date_lag"] = df_all.groupby(["province", "reservoir"])["date"].shift(1)
+
+    cols = ["rainfallsince", "stored_hm3", "capacity_hm3"]
+    for var in ["rainfallsince", "stored_hm3"]:
+        df_all[f"{var}_diff"] = df_all.groupby(["province", "reservoir"])[var].diff()
+        df_all[f"{var}_diff_0"] = df_all[f"{var}_diff"]
+        for lags in range(1, 10):
+            df_all[f"{var}_diff_{lags}"] = df_all.groupby(["province", "reservoir"])[
+                f"{var}_diff"
+            ].shift(lags)
+
+    df_all["bad_data"] = df_all.rainfallsince_diff_0 < -10
+    df_all["bad_data_for_year"] = df_all.groupby(
+        ["province", "reservoir", "year_climatic"]
+    )["bad_data"].transform("any")
+    df_all["problem_month"] = df_all.month.isin([1, 10, 11, 12])
+    df_all["bad_data_and_month"] = df_all.bad_data & df_all.problem_month
+
+    df_all["stored_hm3_diff_relative"] = df_all.stored_hm3_diff / df_all.capacity_hm3
+    df_reg = df_all.query("~bad_data_and_month").query("rainfallsince_diff >=0").copy()
+
+    df_reg["bad_data_for_year"] = df_reg.groupby(
+        ["province", "reservoir", "year_climatic"]
+    )["bad_data"].transform("any")
+    df_reg = df_reg.sort_values(["province", "reservoir", "date"])
+    df_reg["date_diff"] = (df_reg.date - df_reg.date_lag).dt.days
+    df_reg[["province", "reservoir", "date"]].head(10)
+
+    df_reg["bad_data_for_year"] = df_reg.groupby(
+        ["province", "reservoir", "year_climatic"]
+    )["bad_data"].transform("any")
+    assert df_reg.bad_data_for_year.sum() == 0
+
+    def add_lags(df, var_name, lags=np.arange(-5, 5), groups=["province", "reservoir"]):
+        for lag in lags:
+            df[f"{var_name}_lag_{lag}"] = df.groupby(groups)[var_name].shift(lag)
+
+        lag_vars = [f"{var_name}_lag_{lag}" for lag in lags]
+        return df, lag_vars
+
+    df_reg["suspicious_storage"] = (np.abs(df_reg["stored_hm3_diff"]) > 2) & (
+        np.abs(df_reg["stored_hm3_diff_relative"]) > 0.05
+    )
+    df_reg["high_rain"] = (df_reg.rainfallsince_diff > 10) | (
+        df_reg.rainfallsince_diff_1 > 10
+    )
+    df_reg["bad_storage"] = df_reg.suspicious_storage & (~df_reg.high_rain)
+    df_reg, lag_vars = add_lags(df_reg, "bad_storage")
+
+    df_reg["surrounding_bad_storage"] = df_reg[lag_vars].max(axis=1)
+    df_reg = df_reg.query("surrounding_bad_storage==0").copy()
+    return df_reg
+
+
+def pick_monthly(df):
+    df_monthly = df[df.ds.str.slice(8, 10) == "01"].copy()
+    return df_monthly
+
+
+filename_csv_all = f"{folder_base}/all_parsed_cleaned.csv"
+
+
+def cleaned_data_to_csv():
+    filenames_all = sorted(os.listdir(folder_output))
+    df_all = get_full_df(filenames_all)
+    df_all.to_csv(f"{folder_base}/all_parsed.csv", index=False)
+    df_all = correct_issues(df_all).sort_values(["ds", "province", "reservoir"])
+    df_removed = remove_bad_rows(df_all).sort_values(["ds", "province", "reservoir"])
+    df_removed = df_removed[df_all.columns].sort_values(["reservoir", "ds"])
+    len(df_removed), len(df_all)
+    df_removed.to_csv(filename_csv_all, index=False)
+
+    df_monthly = pick_monthly(df_all)
+    df_monthly_cleaned = pick_monthly(df_removed)
+
+    df_monthly.to_csv(f"{folder_base}/monthly.csv", index=False)
+    df_monthly_cleaned.to_csv(f"{folder_base}//monthly_cleaned.csv", index=False)
+
+    num_tail = 60
+    ds_recent = df_all.ds.unique()[-num_tail:]
+    df_recent = df_all[df_all.ds.isin(ds_recent)].copy()
+    df_recent_cleaned = df_removed[df_removed.ds.isin(ds_recent)].copy()
+
+    df_recent.to_csv(f"{folder_base}/recent.csv", index=False)
+    df_recent_cleaned.to_csv(f"{folder_base}/recent_cleaned.csv", index=False)

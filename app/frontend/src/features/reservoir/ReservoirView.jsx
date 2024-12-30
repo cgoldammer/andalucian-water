@@ -69,6 +69,8 @@ export const CreateGraph = (inputs) => {
 
   const { dataCleaned } = getTableData(data, timeOption);
   const { series, xvalues } = getChartData(dataCleaned, timeOption);
+
+  console.log("series", series, "xvalues", xvalues);
   const xAxis = [
     {
       id: "years",

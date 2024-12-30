@@ -69,28 +69,6 @@ export const apiSlice = createApi({
       transformResponse: (response) => listToDictByKey(response, "uuid"),
       providesTags: ["Reservoir"],
     }),
-    getRainfall: builder.query({
-      query: (data) => {
-        const { is_first_of_year, reservoir_uuids, start_date, end_date } =
-          data;
-        return {
-          url: `/get_rainfall?is_first_of_year=${is_first_of_year}&reservoir_uuids=${reservoir_uuids}&start_date=${start_date}&end_date=${end_date}`,
-          method: "GET",
-        };
-      },
-      providesTags: ["ReservoirState"],
-    }),
-    getReservoirStates: builder.query({
-      query: (data) => {
-        const { is_first_of_year, reservoir_uuids, start_date, end_date } =
-          data;
-        return {
-          url: `/get_reservoir_states?is_first_of_year=${is_first_of_year}&reservoir_uuids=${reservoir_uuids}&start_date=${start_date}&end_date=${end_date}`,
-          method: "GET",
-        };
-      },
-      providesTags: ["ReservoirState"],
-    }),
     getDailyData: builder.query({
       query: (data) => {
         const { isFirstOfYear, reservoirUuids, startDate, endDate } = data;
