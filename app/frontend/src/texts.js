@@ -26,8 +26,8 @@ const projectFeatures = [
 ];
 
 const featuresAdded = [
-  "Nov 11, 2024: Data up to Nov 2024",
-  "April 16, 2024: Improved shortfall predictions",
+  "Dec 31, 2024: Overview page",
+  "Nov 11, 2024: Latest data",
 ];
 
 const featuresComing = [
@@ -48,24 +48,33 @@ The more it rains (as % of historical average, x-axis), the more the
         displayed above.
 `;
 
+const chartLabels = {
+  labels: {
+    rain: "Yearly rainfall (% of historical average)",
+    fill: "Annual change in fill as % of full capacity",
+  },
+  legend: {
+    rain: "Rainfall",
+    fill: "Fill Rate",
+  },
+};
+
 export const texts = {
   projectName: "AndaluciaWater",
   projectTag: "Water in Andalucia",
-  projectDescription: projectDescription,
-  projectFeatures: projectFeatures,
-  featuresComing: featuresComing,
+  projectDescription,
+  projectFeatures,
+  featuresComing,
   featuresComingHeader: "Features coming up:",
-  featuresAdded: featuresAdded,
+  featuresAdded,
   featuresAddedHeader: "New features:",
   timeOption: "Time Option",
-  projectWarnings: projectWarnings,
-  descriptionGap: descriptionGap,
+  projectWarnings,
+  descriptionGap,
   analysisName: "See Analysis notebook for details.",
   descriptionScatter: descriptionScatter,
   titleScatter: "The input: Rainfall and fill rates",
-  labelRainFallYear: "Yearly rainfall (% of historical average)",
-  labelRainFall: "Rainfall (mm)",
-  labelFillRate: "Annual change in fill as % of full capacity",
+  chartLabels,
   rainSlider: "Rain (% of historical)",
   labelYAxisTotalChange: "Change (HM3/year)",
   titleRainfallAll: "Change given the rainfall",

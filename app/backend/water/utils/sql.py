@@ -12,6 +12,7 @@ SELECT
 , rf.amount_cumulative AS rainfall_cumulative
 , rf.amount_cumulative_historical AS rainfall_cumulative_historical
 , RANK() OVER (PARTITION BY 1 ORDER BY 1 DESC) AS id
+, 1 AS one
 FROM water_reservoirstate rs
 JOIN water_reservoir r
 ON rs.reservoir_id = r.id

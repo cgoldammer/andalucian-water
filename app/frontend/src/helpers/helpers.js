@@ -60,8 +60,9 @@ export const listOfListToList = (listOfList) => {
   }, []);
 };
 
-export const TimeOptions = {
+export const timeOptions = {
   DAY: "day",
+  MONTH: "month",
   YEAR: "year",
 };
 

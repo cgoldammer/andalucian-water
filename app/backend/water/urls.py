@@ -14,6 +14,7 @@ urlpatterns = [
     path("api/login", views.login_view, name="login"),
     path("api/get_reservoirs", views.get_reservoirs, name="get_reservoirs"),
     path("api/get_wide/", views.get_wide, name="get_wide"),
+    path("api/get_wide_agg/", views.get_wide_agg, name="get_wide_agg"),
     path(
         "api/get_reservoirs_geojson",
         views.get_reservoirs_json,

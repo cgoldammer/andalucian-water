@@ -18,6 +18,10 @@ from django.contrib.gis.geos import Polygon, LinearRing
 import logging
 import os
 from water.utils import helpers
+from water.utils import sql
+from django.db import connections
+
+db_conn = connections["default"]
 
 log = logging.getLogger(__name__)
 
@@ -73,12 +77,17 @@ def get_data_reservoirs_geo():
     return gpd.read_file(locations_s3[key])
 
 
+# def get_data():
+#     key = "states_table"
+#     location_tmp = get_tmp_file(key)
+#     # copy_s3(locations_s3[key], location_tmp)
+#     df = pd.read_csv(locations_s3[key])
+#     return pick_yearly(df)
+
+
 def get_data():
-    key = "states_table"
-    location_tmp = get_tmp_file(key)
-    # copy_s3(locations_s3[key], location_tmp)
-    df = pd.read_csv(locations_s3[key])
-    return pick_yearly(df)
+    df = pd.read_csv(p.filename_csv_all)
+    return df
 
 
 def read_reservoir_geo():
@@ -313,6 +322,11 @@ def store_to_db(df):
     RainFall.objects.bulk_create([rf for rf in rainfalls_to_store if rf is not None])
 
     log.info("Done rain")
+
+    cursor = db_conn.cursor()
+    cursor.execute(sql.q_createview)
+
+    log.info("Done with View")
 
 
 class Command(BaseCommand):

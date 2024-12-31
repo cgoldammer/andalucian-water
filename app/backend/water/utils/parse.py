@@ -34,12 +34,47 @@ def parse_file(filename):
             pass
 
 
-def parse_full(overwrite=False, nums_last=300):
+def is_last_day_of_month(filename):
+    date_str = filename.split(".")[0]
+
+    dates_end_month = [
+        "01_31",
+        "02_28",
+        "03_31",
+        "04_30",
+        "05_31",
+        "06_30",
+        "07_31",
+        "08_31",
+        "09_30",
+        "10_31",
+        "11_30",
+        "12_31",
+    ]
+
+    return date_str[-5:] in dates_end_month
+
+
+def is_first_day_of_month(filename):
+    date_str = filename.split(".")[0]
+
+    return date_str[-2:] == "01"
+
+
+def parse_full(overwrite=False, nums_last=30):
 
     filenames_raw = sorted(os.listdir(folder_input))
-    filenames = filenames_raw[-nums_last:][::-1]
-    filenames
 
+    filenames_required = set(
+        [
+            f
+            for f in filenames_raw
+            if is_last_day_of_month(f) or is_first_day_of_month(f)
+        ]
+    )
+
+    filenames_last = set(filenames_raw[-nums_last:][::-1])
+    filenames = sorted(list(filenames_required.union(filenames_last)))
     filenames_to_parse = []
 
     for i, filename in enumerate(filenames):
@@ -54,6 +89,8 @@ def parse_full(overwrite=False, nums_last=300):
 
     if len(filenames_to_parse) == 0:
         return
+
+    print("To parse", filenames_to_parse)
 
     print(
         f"Files to parse: {len(filenames_to_parse)} | Latest: {filenames_to_parse[0]}"

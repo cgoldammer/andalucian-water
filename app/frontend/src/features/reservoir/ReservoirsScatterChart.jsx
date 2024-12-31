@@ -1,7 +1,7 @@
 import { ScatterChart } from "@mui/x-charts";
 import Typography from "@mui/material/Typography";
-import { useGetReservoirsQuery, useGetDailyDataQuery } from "../api/apiSlice";
-import { TimeOptions, valueFormatter } from "../../helpers/helpers";
+import { useGetReservoirsQuery, useGetWideDataQuery } from "../api/apiSlice";
+import { timeOptions, valueFormatter } from "../../helpers/helpers";
 import React from "react";
 import { getTableData } from "../../helpers/data";
 import Grid from "@mui/material/Unstable_Grid2";
@@ -15,15 +15,15 @@ export const ReservoirsScatterChart = () => {
     useGetReservoirsQuery();
   const reservoirUuids =
     dataReservoirs === undefined ? [] : Object.keys(dataReservoirs);
-  const timeOption = TimeOptions.YEAR;
+  const timeOption = timeOptions.YEAR;
   const inputs = {
     reservoirUuids: reservoirUuids || [],
     startDate: datesDefault[timeOption].start,
     endDate: datesDefault[timeOption].end,
     timeOption: timeOption,
-    isFirstOfYear: true,
+    filterType: "year",
   };
-  const { data, isLoading } = useGetDailyDataQuery(inputs, {
+  const { data, isLoading } = useGetWideDataQuery(inputs, {
     skip: reservoirUuids.length == 0,
   });
 

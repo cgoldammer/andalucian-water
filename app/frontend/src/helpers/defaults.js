@@ -1,14 +1,21 @@
-import { TimeOptions } from "./helpers";
+import { timeOptions } from "./helpers";
 
 export const datesDefault = {
-  [TimeOptions.YEAR]: {
+  [timeOptions.YEAR]: {
+    value: timeOptions.YEAR,
     start: "2000-01-01",
     end: "2024-12-31",
   },
-  [TimeOptions.DAY]: {
-    start: "2021-01-01",
-    end: "2021-01-02",
+  [timeOptions.MONTH]: {
+    value: timeOptions.MONTH,
+    start: "2023-01-01",
+    end: "2024-12-31",
+  },
+  [timeOptions.DAY]: {
+    value: timeOptions.DAY,
+    start: "2024-10-01",
+    end: "2024-12-31",
   },
 };
 
-export const timeOptionDefault = TimeOptions.YEAR;
+export const timeOptionDefault = "YEAR";

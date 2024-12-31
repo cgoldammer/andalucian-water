@@ -123,14 +123,14 @@ class DataTestCase(AppTest):
             "num_obs": 1000,
             "start_date": date_start,
             "end_date": date_end,
-            "is_first_of_year": True,
+            "filter_type": "year",
             "reservoir_uuids": reservoir_uuids,
         }
         states_year = data.get_wide_data(**arguments)
         message = f"Expected {num_reservoirs} reservoirs, got {len(states_year)}"
         assert len(states_year) == num_reservoirs, message
 
-        arguments["is_first_of_year"] = False
+        arguments["filter_type"] = "day"
         states_day = data.get_wide_data(**arguments)
         message = f"Expected {num_reservoirs} reservoirs, got {len(states_day)}"
         assert len(states_day) >= num_reservoirs * 30, message
@@ -145,7 +145,7 @@ class ApiTestCase(AppTest):
     def testGetWide(self):
 
         params = {
-            "is_first_of_year": True,
+            "filter_type": "year",
             "start_date": "2023-09-01",
             "end_date": "2024-01-01",
         }

@@ -167,19 +167,19 @@ class FilterRequest:
         self.num_obs = request.GET.get("num_obs", num_obs_default)
         self.start_date = request.GET.get("start_date", None)
         self.end_date = request.GET.get("end_date", None)
-        self.is_first_of_year = request.GET.get("is_first_of_year", "false") != "false"
+        self.filter_type = request.GET.get("filter_type", "year")
         self.reservoir_uuids = request.GET.get("reservoir_uuids", "")
 
         self.inputs = {
             "num_obs": self.num_obs,
             "start_date": self.start_date,
             "end_date": self.end_date,
-            "is_first_of_year": self.is_first_of_year,
+            "filter_type": self.filter_type,
             "reservoir_uuids": self.reservoir_uuids.split(","),
         }
 
 
-def createFilterRequest(handler, serializerForData):
+def createFilterRequest(handler, serializerForData, require_uuids=True):
 
     @api_view(["GET"])
     @authentication_classes([])
@@ -199,17 +199,21 @@ def createFilterRequest(handler, serializerForData):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if not inputs["reservoir_uuids"]:
+        if require_uuids and not inputs["reservoir_uuids"]:
             return Response(
                 {"error": "reservoir_uuids is required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        if not require_uuids:
+            del inputs["reservoir_uuids"]
+            inputs["group_var"] = request.GET.get("group_var", None)
+
         print("Inputs", inputs)
 
         states = handler(**inputs)
         print(f"States: {len(states)}")
-        print(states[0].__dict__)
+        print(states[0])
 
         serializer = serializerForData(states, many=True)
         return Response(serializer.data)
@@ -218,6 +222,9 @@ def createFilterRequest(handler, serializerForData):
 
 
 get_wide = createFilterRequest(data.get_wide_data, data.StatesMaterializedSerializer)
+get_wide_agg = createFilterRequest(
+    data.get_wide_data_agg, data.DataAggSerializer, False
+)
 
 
 # Provide the file in water/data/reservoirs.json as a json endpoint

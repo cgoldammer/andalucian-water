@@ -1,12 +1,14 @@
+import { texts } from "../texts";
+
 export const getChartData = (data, timeOption) => {
-  const uuids = [...new Set(data.map((row) => row.reservoirUuid))];
+  const uuids = [...new Set(data.map((row) => row.groupId))];
   const datesJson = [
     ...new Set(data.map((row) => JSON.stringify(row.date))),
   ].sort();
   const dates = datesJson.map((date) => JSON.parse(date));
 
   const getValuesForUuid = (uuid, extractor, lineId) => {
-    const rows = data.filter((row) => row.reservoirUuid == uuid);
+    const rows = data.filter((row) => row.groupId == uuid);
     if (rows.length == 0) {
       return null;
     }
@@ -25,7 +27,7 @@ export const getChartData = (data, timeOption) => {
       values.push(value);
     }
     return {
-      yAxisKey: lineId == "State" ? "fill" : "rain",
+      yAxisKey: lineId == texts.chartLabels.legend.fill ? "fill" : "rain",
       type: "line",
       data: values,
       id: lineId + uuid,
@@ -36,21 +38,29 @@ export const getChartData = (data, timeOption) => {
   const extractorState = (row) => row.volume / row.capacity;
 
   const seriesState = uuids.map((uuid) =>
-    getValuesForUuid(uuid, extractorState, "State")
+    getValuesForUuid(uuid, extractorState, texts.chartLabels.legend.fill)
   );
 
+  console.log("seriesState", seriesState);
+
   var seriesRain;
-  if (timeOption == "day") {
-    seriesRain = uuids.map((uuid) =>
-      getValuesForUuid(uuid, (row) => row.rainAmount, "Rain")
-    );
-  } else {
-    seriesRain = uuids.map((uuid) =>
-      getValuesForUuid(uuid, (row) => row.rainAmountCumulativeRelative, "Rain")
-    );
+  seriesRain = uuids
+    .map((uuid) =>
+      getValuesForUuid(
+        uuid,
+        (row) => row.rainAmountCumulativeRelative,
+        texts.chartLabels.legend.rain
+      )
+    )
+    .filter((item) => item !== null);
+
+  const hasMultiple = timeOption == "year";
+  var series = seriesState;
+  if (hasMultiple) {
+    series = series.concat(seriesRain);
   }
 
-  const series = seriesState.concat(seriesRain).filter((item) => item !== null);
+  console.log("series", timeOption, series);
 
   return {
     series: series,
@@ -59,9 +69,13 @@ export const getChartData = (data, timeOption) => {
 };
 
 export const getTableData = (data, timeOption = "day") => {
-  console.log("row", data[0]);
   const dataCleaned = data.map((row) => {
-    const hasRain = row.has_rainfall;
+    const hasRain = row.has_rainfall && row.rainfall_cumulative != 0;
+    const groupId = row.reservoir_uuid
+      ? row.reservoir_uuid
+      : row.province
+      ? row.province
+      : "one";
     return {
       id: row.reservoir_uuid + row.date,
       date: row.date,
@@ -71,6 +85,7 @@ export const getTableData = (data, timeOption = "day") => {
       reservoirName: row.reservoir_name,
       reservoirProvince: row.province,
       reservoirUuid: row.reservoir_uuid,
+      groupId: groupId,
       rainAmount: hasRain ? row.rainfall_amount : null,
       rainAmountCumulative: hasRain ? row.rainfall_cumulative : null,
       rainAmountCumulativeHistorical: hasRain
@@ -81,8 +96,6 @@ export const getTableData = (data, timeOption = "day") => {
         : null,
     };
   });
-
-  console.log("dataCleaned", data, dataCleaned);
 
   const dataAdded = addLaggedVolume(dataCleaned);
 

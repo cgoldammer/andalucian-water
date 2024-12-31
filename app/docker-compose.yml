@@ -33,3 +33,5 @@ services:
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./support/logs_django:/backend/water/logs

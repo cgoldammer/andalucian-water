@@ -15,6 +15,7 @@ import { useSelector } from "react-redux";
 import { MapView } from "./features/MapView";
 import { GapChart } from "./features/reservoir/GapChart";
 import { GapView } from "./features/reservoir/GapView";
+import { OverviewView } from "./features/OverviewView";
 
 const EmptyView = () => {
   return <div />;
@@ -79,6 +80,7 @@ export function App() {
               <Routes>
                 {/* <Route path="/" element={<IntroView />} /> */}
                 <Route path="/" element={sectionsDivFull} />
+                <Route path="/overview" element={<OverviewView />} />
                 <Route path="/reservoirs" element={<MapView />} />
                 <Route path="/shortfall" element={<GapView />} />
                 <Route path="/about" element={<AboutView />} />

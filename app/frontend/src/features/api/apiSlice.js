@@ -69,11 +69,22 @@ export const apiSlice = createApi({
       transformResponse: (response) => listToDictByKey(response, "uuid"),
       providesTags: ["Reservoir"],
     }),
-    getDailyData: builder.query({
+    getWideData: builder.query({
       query: (data) => {
-        const { isFirstOfYear, reservoirUuids, startDate, endDate } = data;
+        const { filterType, reservoirUuids, startDate, endDate } = data;
         const uuidsJoined = reservoirUuids.join(",");
-        const url = `/get_wide/?is_first_of_year=${isFirstOfYear}&reservoir_uuids=${uuidsJoined}&start_date=${startDate}&end_date=${endDate}`;
+        const url = `/get_wide/?filter_type=${filterType}&reservoir_uuids=${uuidsJoined}&start_date=${startDate}&end_date=${endDate}`;
+        return {
+          url: url,
+          method: "GET",
+        };
+      },
+      providesTags: ["Daily"],
+    }),
+    getWideAggData: builder.query({
+      query: (data) => {
+        const { filterType, groupVar, startDate, endDate } = data;
+        const url = `/get_wide_agg/?filter_type=${filterType}&group_var=${groupVar}&start_date=${startDate}&end_date=${endDate}`;
         return {
           url: url,
           method: "GET",
@@ -108,7 +119,8 @@ export const {
   useGetReservoirsQuery,
   useGetRainfallQuery,
   useGetReservoirStatesQuery,
-  useGetDailyDataQuery,
+  useGetWideDataQuery,
+  useGetWideAggDataQuery,
   useGetReservoirsJsonQuery,
   useGetRegionsJsonQuery,
   util,

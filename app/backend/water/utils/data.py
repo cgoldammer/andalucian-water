@@ -1,46 +1,14 @@
 from django.db import models
-from django.db.models import Count
-from django.db.models import Q
 import logging
 from water import models as m
 from collections import defaultdict
 from rest_framework import serializers
-from django.db.models import OuterRef, Subquery, Max
+from django.db.models import OuterRef, Subquery, Max, Sum, Avg, Value, Count, Q
 from django.db.models.functions import Coalesce
+import numpy as np
+import pandas as pd
 
 log = logging.getLogger(__name__)
-
-
-def get_filters(q, num_obs, start_date, end_date, is_first_of_year, reservoir_uuids):
-    q_new = q.filter(date__gte=start_date, date__lte=end_date).order_by(
-        "reservoir__uuid", "date"
-    )
-    if is_first_of_year:
-        q_new = (
-            q_new.filter(date__day=1)
-            .filter(date__month=9)
-            .order_by("reservoir__uuid", "date")
-        )
-    q_new = q_new.filter(reservoir__uuid__in=reservoir_uuids)
-    return q_new
-
-
-def get_reservoir_states_data(
-    num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
-):
-    log.info("Getting states")
-    states = m.ReservoirState.objects.all()
-    return get_filters(
-        states, num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
-    )
-
-
-def get_rainfall_data(num_obs, start_date, end_date, is_first_of_year, reservoir_uuids):
-    states = m.RainFall.objects.all()
-
-    return get_filters(
-        states, num_obs, start_date, end_date, is_first_of_year, reservoir_uuids
-    )
 
 
 def get_reservoir_data():
@@ -73,6 +41,7 @@ class StatesMaterialized(models.Model):
     rainfall_amount = models.FloatField()
     rainfall_cumulative = models.FloatField()
     rainfall_cumulative_historical = models.FloatField()
+    one = models.IntegerField()
 
     class Meta:
         managed = False
@@ -85,27 +54,117 @@ class StatesMaterializedSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-def get_wide_data(num_obs, start_date, end_date, is_first_of_year, reservoir_uuids):
+def get_date_filter(filter_type):
+    if filter_type == "year":
+        return Q(date__day=30) & Q(date__month=9)
 
-    filter_first_of_year = Q(date__day=1) & Q(date__month=9)
-    filter_first = filter_first_of_year if is_first_of_year else Q()
+    if filter_type == "month":
+        return Q(date__day=1)
 
-    from django.db.models import Min, Max
+    if filter_type == "day":
+        return Q()
 
-    date_range_materialized = StatesMaterialized.objects.aggregate(
-        min_date=Min("date"), max_date=Max("date")
-    )
 
+def get_wide_data(num_obs, start_date, end_date, filter_type, reservoir_uuids):
+    print("reservoir_uuids", reservoir_uuids)
+    filter_first = get_date_filter(filter_type)
     allvals = StatesMaterialized.objects
     filtered_date = allvals.filter(date__gte=start_date, date__lte=end_date)
     filtered_reservoir = filtered_date.filter(reservoir_uuid__in=reservoir_uuids)
     filtered = filtered_reservoir.filter(filter_first)
 
-    print(
-        f"Counts: {allvals.count()} {filtered_date.count()} {filtered_reservoir.count()} {filtered.count()}"
+    print(f"Counts: {len(filtered_date)}, {len(filtered_reservoir)}, {len(filtered)}")
+    return filtered[0:num_obs]
+
+
+def group_query_by(query, group_vars):
+
+    grouped = {}
+    for row in query:
+        rowvals = row.__dict__
+        key = tuple([rowvals[var] for var in group_vars])
+        if key not in grouped:
+            grouped[key] = []
+        grouped[key].append(row)
+
+    return grouped
+
+
+class DataAgg(models.Model):
+    id = models.IntegerField(primary_key=True)
+    date = models.DateField()
+    group_var_name = models.CharField(max_length=255)
+    group_var = models.CharField(max_length=255)
+    capacity = models.FloatField()
+    volume = models.FloatField()
+    rainfall_amount = models.FloatField()
+    rainfall_cumulative = models.FloatField()
+    rainfall_cumulative_historical = models.FloatField()
+    reservoir_id = models.IntegerField()
+    reservoir_uuid = models.UUIDField()
+    has_rainfall = models.BooleanField(default=True)
+
+    class Meta:
+        managed = False
+
+
+class DataAggSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DataAgg
+        fields = "__all__"
+
+
+def get_data_agg(group_var, row):
+    return DataAgg(
+        id=row["id"],
+        date=row["date"],
+        group_var_name=group_var,
+        group_var=row["group_var"],
+        capacity=row["capacity"],
+        volume=row["volume"],
+        rainfall_amount=row["rainfall_amount"],
+        rainfall_cumulative=row["rainfall_cumulative"],
+        rainfall_cumulative_historical=row["rainfall_cumulative_historical"],
     )
 
-    return filtered[0:num_obs]
+
+def get_wide_data_agg(num_obs, start_date, end_date, filter_type, group_var):
+
+    filter_first = get_date_filter(filter_type)
+    allvals = StatesMaterialized.objects
+    filtered_date = allvals.filter(date__gte=start_date, date__lte=end_date)
+    print(len(filtered_date))
+    filtered = filtered_date.filter(filter_first)
+
+    print(len(filtered))
+    values_group = filtered.values(group_var)
+    df = pd.DataFrame(filtered.values())
+    groupvars = [group_var, "date"]
+
+    df["obs"] = 1
+
+    cols_sum = [
+        "volume",
+        "rainfall_amount",
+        "rainfall_cumulative",
+        "rainfall_cumulative_historical",
+        "capacity",
+        "obs",
+    ]
+
+    print(df.columns)
+
+    grouped_df = df.groupby(groupvars)[cols_sum].sum().reset_index()
+    grouped_df["id"] = range(1, len(grouped_df) + 1)
+    grouped_df["group_var"] = grouped_df[group_var]
+    grouped_df["group_var_name"] = group_var
+
+    grouped_df["capacity_max"] = grouped_df["capacity"].max()
+
+    grouped_df = grouped_df[grouped_df.capacity >= 0.5 * grouped_df.capacity_max]
+
+    rows = [get_data_agg(group_var, row) for index, row in grouped_df.iterrows()]
+    return rows[0:num_obs]
 
 
 def query_to_geojson(query, properties_getter):

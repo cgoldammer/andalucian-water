@@ -53,7 +53,7 @@ const mockValDailyData = {
 jest.mock("../../features/api/apiSlice", () => ({
   ...jest.requireActual("../../features/api/apiSlice"),
   useGetReservoirsQuery: jest.fn(() => mockValReservoirs),
-  useGetDailyDataQuery: jest.fn(() => mockValDailyData),
+  ailyDataQuery: jest.fn(() => mockValDailyData),
 }));
 
 jest.mock("@mui/x-charts/ChartsAxis", () => ({

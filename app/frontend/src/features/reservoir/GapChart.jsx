@@ -1,6 +1,6 @@
 import React from "react";
-import { useGetDailyDataQuery, useGetReservoirsQuery } from "../api/apiSlice";
-import { TimeOptions } from "../../helpers/helpers";
+import { useGetWideDataQuery, useGetReservoirsQuery } from "../api/apiSlice";
+import { timeOptions } from "../../helpers/helpers";
 import {
   getTableData,
   addShortfall,
@@ -82,15 +82,15 @@ export const GapChartDisplay = (props) => {
     useGetReservoirsQuery();
   const reservoirUuids =
     dataReservoirs === undefined ? {} : Object.keys(dataReservoirs);
-  const timeOption = TimeOptions.YEAR;
+  const timeOption = timeOptions.YEAR;
   const inputs = {
     reservoirUuids: reservoirUuids,
-    startDate: datesDefault[TimeOptions.YEAR].start,
-    endDate: datesDefault[TimeOptions.YEAR].end,
+    startDate: datesDefault[timeOptions.YEAR].start,
+    endDate: datesDefault[timeOptions.YEAR].end,
     timeOption: timeOption,
-    isFirstOfYear: true,
+    filterType: "year",
   };
-  const { data, isLoading } = useGetDailyDataQuery(inputs, {
+  const { data, isLoading } = useGetWideDataQuery(inputs, {
     skip: reservoirUuids.length == 0,
   });
   const [aggType, setAggType] = React.useState("province");
