@@ -60,12 +60,6 @@ export const listOfListToList = (listOfList) => {
   }, []);
 };
 
-export const timeOptions = {
-  DAY: "day",
-  MONTH: "month",
-  YEAR: "year",
-};
-
 const fetchStub = "simple";
 
 const fetchApis = [

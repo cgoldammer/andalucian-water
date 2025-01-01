@@ -41,8 +41,6 @@ export const getChartData = (data, timeOption) => {
     getValuesForUuid(uuid, extractorState, texts.chartLabels.legend.fill)
   );
 
-  console.log("seriesState", seriesState);
-
   var seriesRain;
   seriesRain = uuids
     .map((uuid) =>
@@ -59,9 +57,6 @@ export const getChartData = (data, timeOption) => {
   if (hasMultiple) {
     series = series.concat(seriesRain);
   }
-
-  console.log("series", timeOption, series);
-
   return {
     series: series,
     xvalues: dates,

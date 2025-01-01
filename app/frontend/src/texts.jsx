@@ -1,3 +1,5 @@
+import { prepareTexts } from "./helpers/textHelpers";
+
 const projectDescription = `
 An overview of water reservoir levels in Andalucia, Spain.
 
@@ -13,6 +15,11 @@ so don't share results. If you find errors, let us know!
 `;
 
 const projectFeatures = [
+  {
+    name: "Overview",
+    description: "Total Fill rates for Andalucia",
+    linkLocation: "/overview",
+  },
   {
     name: "Reservoirs",
     description: "View the historical trends for a reservoir",
@@ -31,7 +38,6 @@ const featuresAdded = [
 ];
 
 const featuresComing = [
-  "Daily resolution for reservoir levels",
   "Impact of current investments",
   "Spanish language support",
 ];
@@ -57,9 +63,48 @@ const chartLabels = {
     rain: "Rainfall",
     fill: "Fill Rate",
   },
+  buttons: {
+    reservoirs: "Reservoirs",
+    regions: "Water Regions",
+  },
 };
 
-export const texts = {
+const dataPrepText = "Data Preparation: ";
+const about = {
+  linkRepo: { text: dataPrepText, linkName: "GitHub repo" },
+  linkRawData: { text: "Data source:", linkName: "REDIAM" },
+};
+
+const namesRegionsShort = {
+  Guadalquivir: "Guadalquivir",
+  "Cuencas Mediterráneas Andaluzas": "Cuencas M.",
+  "Guadalete Y Barbate": "Guad. Barb.",
+  "Tinto, Odiel Y Piedras": "Tinto Odiel Piedras",
+  Guadiana: "Guadiana",
+};
+
+export const timeOptions = {
+  DAY: "day",
+  MONTH: "month",
+  YEAR: "year",
+};
+
+const getLevelsTextRel = (direction, value) => {
+  const directionString = direction > 0 ? "increase" : "decrease";
+  return `Reservoir levels ${directionString} by ${value} of capacity`;
+};
+
+const getLevelsTextAbs = (direction, value) => {
+  const directionString = direction > 0 ? "Increase" : "Shortfall";
+  return `${directionString} of ${value} HM3/year`;
+};
+
+const chartNames = {
+  total: "Total for Andalucia",
+  region: "Region",
+};
+
+const textsStub = {
   projectName: "AndaluciaWater",
   projectTag: "Water in Andalucia",
   projectDescription,
@@ -78,22 +123,13 @@ export const texts = {
   rainSlider: "Rain (% of historical)",
   labelYAxisTotalChange: "Change (HM3/year)",
   titleRainfallAll: "Change given the rainfall",
-  getLevelsTextRel: (direction, value) => {
-    const directionString = direction > 0 ? "increase" : "decrease";
-    return `Reservoir levels ${directionString} by ${value} of capacity`;
-  },
-  getLevelsTextAbs: (direction, value) => {
-    const directionString = direction > 0 ? "Increase" : "Shortfall";
-    return `${directionString} of ${value} HM3/year`;
-  },
+  getLevelsTextRel: getLevelsTextRel,
+  getLevelsTextAbs: getLevelsTextAbs,
+  levelsStub: "Summary Estimate: ",
+  namesRegionsShort,
+  about,
+  chartNames,
+  timeOptions,
 };
 
-export const positionAndalucia = [36.7213, -4.4214];
-
-export const namesRegionsShort = {
-  Guadalquivir: "Guadalquivir",
-  "Cuencas Mediterráneas Andaluzas": "Cuencas M.",
-  "Guadalete Y Barbate": "Guad. Barb.",
-  "Tinto, Odiel Y Piedras": "Tinto Odiel Piedras",
-  Guadiana: "Guadiana",
-};
+export const texts = prepareTexts(textsStub);

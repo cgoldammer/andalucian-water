@@ -17,11 +17,13 @@ import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import { CenteredGrid } from "../helpers/helpersUI";
 import { Typography } from "@mui/material";
+import { BoxLoading } from "../helpers/Components";
 
 // malaga, spain
 const position = [37.4213, -4.816];
 
 import PropTypes from "prop-types";
+import { texts } from "../texts";
 
 const invertXY = (coordinates) => {
   return [coordinates[1], coordinates[0]];
@@ -127,26 +129,46 @@ export const MapView = () => {
   const reservoirUuidSelected = useSelector(
     (state) => state.ui.reservoirUuidSelected
   );
-  const { data: dataGeo, isLoading: isLoadingGeo } =
-    useGetReservoirsJsonQuery();
-  const { data: dataRegions, isLoading: isLoadingRegions } =
-    useGetRegionsJsonQuery();
+  const {
+    data: dataGeo,
+    isLoading: isLoadingGeo,
+    isFetching: isFetchingGeo,
+  } = useGetReservoirsJsonQuery();
+  const {
+    data: dataRegions,
+    isLoading: isLoadingRegions,
+    isFetching: isFetchingRegions,
+  } = useGetRegionsJsonQuery();
 
   const handleToggle = (event, newShowValues) => {
     setShowValues(newShowValues);
   };
 
-  const { data: dataReservoirs, isLoading: isLoadingReservoirs } =
-    useGetReservoirsQuery();
+  const {
+    data: dataReservoirs,
+    isLoading: isLoadingReservoirs,
+    isFetching: isFetchingReservoirs,
+  } = useGetReservoirsQuery();
 
-  if (isLoadingGeo || isLoadingReservoirs || isLoadingRegions) {
-    return <div>Loading...</div>;
+  if (
+    isLoadingGeo ||
+    isLoadingReservoirs ||
+    isLoadingRegions ||
+    isFetchingGeo ||
+    isFetchingRegions ||
+    isFetchingReservoirs
+  ) {
+    return <BoxLoading />;
   }
 
   const toggleButtonGroup = (
     <ToggleButtonGroup value={showValues} onChange={handleToggle}>
-      <ToggleButton value={"reservoir"}>Reservoirs</ToggleButton>
-      <ToggleButton value={"region"}>Water Regions</ToggleButton>
+      <ToggleButton value={"reservoir"}>
+        {texts.chartLabels.buttons.reservoirs}
+      </ToggleButton>
+      <ToggleButton value={"region"}>
+        {texts.chartLabels.buttons.regions}
+      </ToggleButton>
     </ToggleButtonGroup>
   );
 
@@ -167,7 +189,9 @@ export const MapView = () => {
   const regionView =
     isShow("region") && selectedRegion ? (
       <div>
-        <Typography variant="h4">Region: {selectedRegion}</Typography>
+        <Typography variant="h4">
+          {texts.chartNames.region} {selectedRegion}
+        </Typography>
       </div>
     ) : (
       <div></div>

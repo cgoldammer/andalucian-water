@@ -1,7 +1,7 @@
 import React from "react";
 import { timeOptionDefault, datesDefault } from "../../helpers/defaults";
 import Grid from "@mui/material/Unstable_Grid2";
-import { timeOptions } from "../../helpers/helpers";
+
 import Typography from "@mui/material/Typography";
 import { getChartData, getTableData } from "../../helpers/data";
 import { axisClasses } from "@mui/x-charts/ChartsAxis";
@@ -11,6 +11,8 @@ import { LineChart } from "@mui/x-charts";
 import { useGetWideDataQuery, useGetWideAggDataQuery } from "../api/apiSlice";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import { BoxLoading } from "../../helpers/Components";
+const timeOptions = texts.timeOptions;
 
 export const yAxisWater = {
   id: "rain",
@@ -43,7 +45,7 @@ export const TimeSeriesChartView = ({
   const getter =
     reservoirUuid != undefined ? useGetWideDataQuery : useGetWideAggDataQuery;
 
-  const { data, isLoading, error } = getter(postData);
+  const { data, isLoading, isFetching, error } = getter(postData);
 
   const yAxisFill = {
     id: "fill",
@@ -56,16 +58,12 @@ export const TimeSeriesChartView = ({
     return <div>Error {JSON.stringify(error)}</div>;
   }
 
-  if (isLoading || data == undefined) {
-    return <div>Loading...</div>;
+  if (isLoading || isFetching || data == undefined) {
+    return <BoxLoading />;
   }
 
   if (data.length == 0) {
     return <div>No data found</div>;
-  }
-
-  if (timeOption == timeOptions.YEAR && data.length > 20) {
-    return <div>Too many data points for yearly view</div>;
   }
 
   const { dataCleaned } = getTableData(data, timeOption);
@@ -113,7 +111,6 @@ export const TimeSeriesChartView = ({
 };
 
 TimeSeriesChartView.propTypes = {
-  title: PropTypes.string.isRequired,
   timeOption: PropTypes.string.isRequired,
   reservoirUuid: PropTypes.string,
   groupVar: PropTypes.string,
@@ -163,16 +160,10 @@ export const TimeSeriesChartWithControlsView = ({
       >
         <Typography variant="h3">{title}</Typography>
       </Grid>
-      <Grid
-        item
-        xs={12}
-        display="flex"
-        justifyContent="center"
-        marginTop="10px"
-      >
+      <Grid xs={12} display="flex" justifyContent="center" marginTop="10px">
         {toggleButtons}
       </Grid>
-      <Grid item xs={12} display="flex" justifyContent="center">
+      <Grid xs={12} display="flex" justifyContent="center">
         <TimeSeriesChartView
           timeOption={timeOptions[timeOption]}
           reservoirUuid={reservoirUuid}

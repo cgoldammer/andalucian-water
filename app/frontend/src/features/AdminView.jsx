@@ -12,15 +12,8 @@ import {
   fetchTestSuite,
 } from "../helpers/helpers";
 import { BorderedBox } from "../helpers/helpersUI";
-
-import {
-  Slider,
-  Grid,
-  Button,
-  List,
-  ListItem,
-  ListItemText,
-} from "@mui/material";
+import Grid from "@mui/material/Unstable_Grid2";
+import { Slider, Button, List, ListItem, ListItemText } from "@mui/material";
 
 export const AdminView = () => {
   const dispatch = useDispatch();
@@ -51,8 +44,8 @@ export const AdminView = () => {
 
   const slider = (
     <Grid container spacing={2} alignItems="center">
-      <Grid item>API response seconds: {matchResponseSeconds}</Grid>
-      <Grid item xs>
+      <Grid>API response seconds: {matchResponseSeconds}</Grid>
+      <Grid xs>
         <Slider
           value={matchResponseSeconds}
           min={0}

@@ -1,6 +1,5 @@
 import React from "react";
 import { useGetWideDataQuery, useGetReservoirsQuery } from "../api/apiSlice";
-import { timeOptions } from "../../helpers/helpers";
 import {
   getTableData,
   addShortfall,
@@ -17,7 +16,9 @@ import PropTypes from "prop-types";
 import { texts, namesRegionsShort } from "../../texts";
 import { ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { axisClasses } from "@mui/x-charts/ChartsAxis";
+import { BoxLoading } from "../../helpers/Components";
 const rainFallDefault = 0.6;
+const timeOptions = texts.timeOptions;
 
 export const GapChart = () => {
   const [rainfallExpected, setRainfallExpected] =
@@ -90,7 +91,7 @@ export const GapChartDisplay = (props) => {
     timeOption: timeOption,
     filterType: "year",
   };
-  const { data, isLoading } = useGetWideDataQuery(inputs, {
+  const { data, isLoading, isFetching } = useGetWideDataQuery(inputs, {
     skip: reservoirUuids.length == 0,
   });
   const [aggType, setAggType] = React.useState("province");
@@ -104,10 +105,13 @@ export const GapChartDisplay = (props) => {
     dataReservoirs === undefined ||
     Object.keys(dataReservoirs).length === 0 ||
     isLoading ||
-    data == undefined ||
-    data.length == 0
+    isFetching
   ) {
-    return <div>Gapchart Loading...</div>;
+    return <BoxLoading />;
+  }
+
+  if (data.length === 0) {
+    return <div>No data found</div>;
   }
 
   const { dataCleaned } = getTableData(data, timeOption);
@@ -143,8 +147,8 @@ export const GapChartDisplay = (props) => {
   const relChangeAbs = totalRelChange < 0 ? -totalRelChange : totalRelChange;
 
   const seriesAggNames = seriesGrouped.map((row) =>
-    namesRegionsShort[row.group] != undefined
-      ? namesRegionsShort[row.group]
+    texts.namesRegionsShort[row.group] != undefined
+      ? texts.namesRegionsShort[row.group]
       : row.group
   );
 

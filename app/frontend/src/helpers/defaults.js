@@ -1,4 +1,5 @@
-import { timeOptions } from "./helpers";
+import { texts } from "../texts";
+const timeOptions = texts.timeOptions;
 
 export const datesDefault = {
   [timeOptions.YEAR]: {

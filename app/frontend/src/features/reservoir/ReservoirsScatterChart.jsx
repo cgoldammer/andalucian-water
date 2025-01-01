@@ -1,7 +1,7 @@
 import { ScatterChart } from "@mui/x-charts";
 import Typography from "@mui/material/Typography";
 import { useGetReservoirsQuery, useGetWideDataQuery } from "../api/apiSlice";
-import { timeOptions, valueFormatter } from "../../helpers/helpers";
+import { valueFormatter } from "../../helpers/helpers";
 import React from "react";
 import { getTableData } from "../../helpers/data";
 import Grid from "@mui/material/Unstable_Grid2";
@@ -9,6 +9,7 @@ import { datesDefault } from "../../helpers/defaults";
 import { axisClasses } from "@mui/x-charts/ChartsAxis";
 import PropTypes from "prop-types";
 import { texts } from "../../texts";
+const timeOptions = texts.timeOptions;
 
 export const ReservoirsScatterChart = () => {
   const { data: dataReservoirs, isLoading: isLoadingReservoirs } =

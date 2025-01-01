@@ -18,7 +18,7 @@ const FeatureCard = (props) => {
   };
 
   return (
-    <Card sx={{ width: "100%", maxWidth: 500, margin: "20px" }}>
+    <Card sx={{ width: "100%", maxWidth: 500, margin: "10px" }}>
       <CardActionArea onClick={onClick}>
         <CardContent>
           <Typography gutterBottom variant="h5" component="div">
@@ -39,6 +39,9 @@ FeatureCard.propTypes = {
   linkLocation: PropTypes.string.isRequired,
 };
 
+const totalChange = -125;
+const totalChangeAbs = totalChange < 0 ? -totalChange : totalChange;
+
 export const IntroView = () => (
   <Grid container spacing={2}>
     <CenteredGrid xs={12}>
@@ -46,15 +49,19 @@ export const IntroView = () => (
         {texts.projectTag}
       </Typography>
     </CenteredGrid>
+
     <CenteredGrid xs={12}>
-      {/* <Alert severity="warning" style={{ margin: "10px" }}>
-        {texts.projectWarnings}
-      </Alert> */}
       {texts.featuresAdded.map((feature) => (
         <Alert severity="success" key={feature} sx={{ margin: "5px" }}>
           {feature}
         </Alert>
       ))}
+    </CenteredGrid>
+    <CenteredGrid xs={12}>
+      <Typography variant="h3">
+        {texts.levelsStub}
+        {texts.getLevelsTextAbs(totalChange > 0, totalChangeAbs.toFixed(0))}
+      </Typography>
     </CenteredGrid>
 
     <Grid md={4}>
@@ -74,21 +81,5 @@ export const IntroView = () => (
         ))}
       </CenteredGrid>
     </Grid>
-    <CenteredGrid xs={12}>
-      <Typography variant="h2">{texts.featuresComingHeader}</Typography>
-    </CenteredGrid>
-    <CenteredGrid xs={12}>
-      {texts.featuresComing.map((feature) => (
-        <Grid
-          key={feature}
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          xs={12}
-        >
-          <Typography variant="body1">{feature}</Typography>
-        </Grid>
-      ))}
-    </CenteredGrid>
   </Grid>
 );
